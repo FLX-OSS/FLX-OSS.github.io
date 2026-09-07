@@ -28,7 +28,7 @@ const command = [
         <div class="terminal-top"><span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>YOUR FIRST SERVER</span><span class="terminal-language">bash</span></div>
         <Code code={command} lang="bash" frame="none" />
         <div class="terminal-bottom"><span class="small-dot"></span> Local endpoint <code>127.0.0.1:8000</code></div>
-        <p class="demo-prerequisite">Already installed? Run this in your FluxServe environment.<br /><a href="/guides/docker/">Set up Docker and CUDA first <span aria-hidden="true">→</span></a></p>
+        <p class="demo-prerequisite">Already installed? Run this in your FluxServe environment.<br /><a href="/docs/guides/docker/">Set up Docker and CUDA first <span aria-hidden="true">→</span></a></p>
         <div class="block-illustration" aria-hidden="true">
           <span class="block-label">PROMPT</span><div class="token-group"><i></i><i></i><i></i><i></i></div>
           <span class="flow-arrow">→</span>
@@ -41,12 +41,12 @@ const command = [
       <div class="capability-grid">
         <article><span class="feature-index">01 / ATTENTION</span><div class="feature-symbol attention-symbol" aria-hidden="true">{Array.from({length:16},(_,i)=><i class={i % 4 <= Math.floor(i / 4) ? 'filled' : ''}></i>)}</div><h3>Every block counts.</h3><p>Block-causal attention for variable-length prefill and decoding, with paged KV caching and CUDA graph support.</p><a href="/docs/architecture/#attention-and-decoding">Explore block attention <span aria-hidden="true">→</span></a></article>
         <article><span class="feature-index">02 / SCHEDULING</span><div class="feature-symbol scheduler-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Keep requests moving.</h3><p>A C++ control plane and Python execution plane coordinate requests with fine-grained, block-level scheduling.</p><a href="/docs/architecture/#block-level-scheduling">Understand the scheduler <span aria-hidden="true">→</span></a></article>
-        <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p><a href="/guides/llada2-flash/">Deploy across GPUs <span aria-hidden="true">→</span></a></article>
+        <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p><a href="/docs/guides/llada2-flash/">Deploy across GPUs <span aria-hidden="true">→</span></a></article>
       </div>
     </section>
     <section class="start-strip" aria-labelledby="start-heading">
       <div><p class="eyebrow">FROM SOURCE TO SERVING</p><h2 id="start-heading">Your next step starts here.</h2></div>
-      <div class="start-links"><a href="/docs/quickstart/"><span>01</span> Send your first request <b aria-hidden="true">↗</b></a><a href="/guides/"><span>02</span> Find a deployment guide <b aria-hidden="true">↗</b></a><a href="/docs/benchmarking/"><span>03</span> Benchmark your workload <b aria-hidden="true">↗</b></a></div>
+      <div class="start-links"><a href="/docs/quickstart/"><span>01</span> Send your first request <b aria-hidden="true">↗</b></a><a href="/docs/#deployment-guides"><span>02</span> Find a deployment guide <b aria-hidden="true">↗</b></a><a href="/docs/benchmarking/"><span>03</span> Benchmark your workload <b aria-hidden="true">↗</b></a></div>
     </section>
   </div>
 </StarlightPage>

@@ -127,11 +127,6 @@ html:has(.landing) main { padding-top: 0; }
 .start-links a { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; color: var(--sl-color-white); border-bottom: 1px solid var(--line); font-size: .95rem; }
 .start-links a:hover { color: var(--brand); }.start-links span { font: .75rem var(--sl-font-mono); color: var(--muted); }.start-links b { margin-left: auto; font-weight: 400; }
 .section-intro { max-width: 47rem; color: var(--muted); font-size: 1.05rem; line-height: 1.8; }.section-intro p + p { margin-top: .75rem; }.section-intro a { color: var(--brand); }
-.guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 2.5rem; }
-.guide-card { display: flex; flex-direction: column; align-items: flex-start; color: var(--sl-color-white); padding: 2rem; border: 1px solid var(--line); border-radius: 10px; }
-.guide-card:hover { border-color: var(--brand); background: var(--surface); }
-.guide-card h2 { display: flex; justify-content: space-between; gap: 1rem; width: 100%; font-size: 1.5rem; margin: 1rem 0 .5rem; letter-spacing: -.025em; }.guide-card h2 span { color: var(--muted); font-weight: 400; }
-.guide-card p { font-size: .96rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }.card-link { font-size: .875rem; color: var(--brand); margin-top: auto; }
 .blog-empty { text-align: center; padding: 5rem 1.5rem; margin-top: 2.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }.empty-mark { color: var(--brand); font: 2.5rem var(--sl-font-mono); }.blog-empty h2 { font-size: 1.8rem; letter-spacing: -.035em; margin: 1rem 0 .7rem; }.blog-empty p { color: var(--muted); line-height: 1.8; }.blog-empty > a { display: inline-flex; margin-top: 1.5rem; color: var(--brand); gap: 1rem; }.blog-empty > a.primary { color: #fff; }
 .post-list article { padding: 2.5rem 0; border-bottom: 1px solid var(--line); }.post-list time,.post-list article > span,.post-meta { font-size: .875rem; color: var(--muted); }.post-list h2 { font-size: 1.7rem; margin: .5rem 0; }.post-list a { color: var(--sl-color-white); }.post-list p { color: var(--muted); margin-bottom: 1rem; }
 @media(min-width: 80rem) { .flux-header { padding-inline: .6rem; } }
@@ -146,7 +141,7 @@ html:has(.landing) main { padding-top: 0; }
   .sl-menu-button { top: 1rem !important; }
   .hero-section { grid-template-columns: 1fr; padding: 3rem 0; gap: 2rem; }.hero-copy h1 { font-size: clamp(2.7rem,9vw,4.3rem); }.desktop-break { display: none; }.hero-description { max-width: 34rem; }.hero-demo { max-width: 36rem; width: 100%; padding-top: 0; }
   .capability-grid { grid-template-columns: 1fr; }.capability-grid article { padding: 1.8rem; }.capability-grid article + article { border-left: 0; border-top: 1px solid var(--line); }.feature-symbol { margin-block: 1.3rem 1rem; }
-  .start-strip { grid-template-columns: 1fr; gap: 1rem; }.start-strip h2 { max-width: none; }.guide-grid { grid-template-columns: 1fr; }
+  .start-strip { grid-template-columns: 1fr; gap: 1rem; }.start-strip h2 { max-width: none; }
   .flux-footer { flex-direction: column; align-items: flex-start; gap: 1rem; margin-top: 3rem; }.flux-footer > div { gap: 1rem; }
 }
 @media(max-width: 380px) { .brand img { width: 105px; }[data-theme='dark'] .brand img { width: 85px; }.header-tools { gap: .25rem; }.primary-nav { gap: 1rem; }.block-label { font-size: .55rem; }.token-group i { width: 12px; }.hero-actions { gap: .6rem; }.button { gap: .6rem; padding-inline: .85rem; } }

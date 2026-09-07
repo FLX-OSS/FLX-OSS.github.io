@@ -28,25 +28,25 @@
     },
     {
       "source": "docs/guides/getting_started.md",
-      "slug": "guides/docker",
+      "slug": "docs/guides/docker",
       "title": "Docker installation",
       "description": "Build the CUDA environment and install FluxServe on an NVIDIA GPU host."
     },
     {
       "source": "docs/serving/llada2-mini.md",
-      "slug": "guides/llada2-mini",
+      "slug": "docs/guides/llada2-mini",
       "title": "LLaDA2.0-mini",
       "description": "Serve LLaDA2.0-mini on one NVIDIA GPU."
     },
     {
       "source": "docs/serving/llada2-flash.md",
-      "slug": "guides/llada2-flash",
+      "slug": "docs/guides/llada2-flash",
       "title": "LLaDA2.0-flash",
       "description": "Serve LLaDA2.0-flash with tensor and expert parallelism on four GPUs."
     },
     {
       "source": "docs/serving/llada2.1.md",
-      "slug": "guides/llada2-1",
+      "slug": "docs/guides/llada2-1",
       "title": "LLaDA2.1",
       "description": "Configure quality and speed presets with joint threshold decoding."
     }

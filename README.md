@@ -50,7 +50,7 @@ Technical content belongs in **FLX-OSS/FluxServe**, not this repository.
 2. Commit and publish the reviewed FluxServe documentation changes.
 3. Set `revision` in `fluxserve-docs.json` to the complete 40-character published commit SHA.
 4. Set `editBranch` to the branch where documentation edits belong (normally `main`). The initial website uses `codex/docs-site-source` while its documentation PR awaits review; update the pin and edit branch after that PR merges.
-5. Add or adjust explicit `pages` entries when publishing new public docs. Each entry provides a source path, stable URL slug, title, and description. Update the matching sidebar or guide index.
+5. Add or adjust explicit `pages` entries when publishing new public docs. Each entry provides a source path, stable URL slug, title, and description. Update the matching Docs sidebar. Deployment guides use `/docs/guides/` URLs alongside the other documentation.
 6. Run the production checks and review the website change before merging.
 
 The importer rewrites links between public docs, copies referenced image/PDF assets, and points other repository-file links to the pinned GitHub revision. Missing source files, asset files, and imported-page anchors fail the build. Each imported page links to its exact source revision.
@@ -86,7 +86,7 @@ The canonical origin is `https://flx-oss.github.io` with no repository-name pref
 
 - `fluxserve-docs.json`: pinned source revision and public documentation manifest.
 - `scripts/`: Markdown importer and built-site link/metadata validation.
-- `src/pages/`: custom homepage, guide index, blog, and 404.
+- `src/pages/`: custom homepage, blog, and 404; all documentation, including deployment guides, is imported under `/docs/`.
 - `src/components/`, `src/styles/`: shared navigation and FluxServe styling.
 - `src/content/blog/`: authored blog Markdown.
 - `src/content/docs/`, `public/fluxserve/`: generated and untracked.

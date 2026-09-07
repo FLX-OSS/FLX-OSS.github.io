@@ -19,7 +19,7 @@ export function validateManifest(manifest) {
     throw new Error('Expected a GitHub repository and a full pinned commit SHA.');
   const sources = new Set(), slugs = new Set();
   for (const page of manifest.pages) {
-    if (!/^(docs|guides)(\/[a-z0-9-]+)*$/.test(page.slug) || sources.has(page.source) || slugs.has(page.slug))
+    if (!/^docs(\/[a-z0-9-]+)*$/.test(page.slug) || sources.has(page.source) || slugs.has(page.slug))
       throw new Error('Invalid or duplicate page in manifest: ' + page.slug);
     sources.add(page.source); slugs.add(page.slug);
   }
