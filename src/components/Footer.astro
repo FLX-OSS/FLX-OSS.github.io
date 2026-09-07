@@ -1,0 +1,9 @@
+---
+import DefaultFooter from '@astrojs/starlight/components/Footer.astro';
+const { hasSidebar } = Astro.locals.starlightRoute;
+---
+{hasSidebar && <DefaultFooter />}
+<footer class="flux-footer" data-pagefind-ignore>
+  <a href="/" class="footer-name">FluxServe<span> / </span>FLX-OSS</a>
+  <div><a href="/docs/">Documentation</a><a href="https://github.com/FLX-OSS/FluxServe">GitHub ↗</a><a href="https://github.com/FLX-OSS/FluxServe/blob/main/LICENSE">MIT License</a></div>
+</footer>

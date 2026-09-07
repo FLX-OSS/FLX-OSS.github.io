@@ -1,0 +1,11 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getCollection } from 'astro:content';
+import { publishedPosts } from '../../lib/blog.mjs';
+const posts = publishedPosts(await getCollection('blog'));
+---
+<StarlightPage frontmatter={{ title: 'Blog', description: 'Engineering notes and updates from the FluxServe project.', template: 'splash', editUrl: false, lastUpdated: false }}>
+  <div class="not-content section-intro"><p>Engineering notes. Project updates. Ideas behind the engine.</p></div>
+  {posts.length ? <div class="post-list not-content">{posts.map(post => <article><time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</time><h2><a href={'/blog/' + post.id + '/'}>{post.data.title} ↗</a></h2><p>{post.data.description}</p><span>{post.data.author}</span></article>)}</div> :
+    <div class="blog-empty not-content"><span class="empty-mark" aria-hidden="true">[ &nbsp; ]</span><h2>No posts yet.</h2><p>When we have something to share, you’ll find it here.<br />Until then, explore how FluxServe works.</p><a href="/docs/architecture/">Read the architecture overview <span aria-hidden="true">→</span></a></div>}
+</StarlightPage>

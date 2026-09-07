@@ -1,0 +1,58 @@
+{
+  "repository": "FLX-OSS/FluxServe",
+  "revision": "ee2eb858da592eef77575dcf47414b565d9f890c",
+  "pages": [
+    {
+      "source": "docs/overview.md",
+      "slug": "docs",
+      "title": "Introduction",
+      "description": "Meet FluxServe, a serving engine for diffusion language models."
+    },
+    {
+      "source": "docs/guides/quickstart.md",
+      "slug": "docs/quickstart",
+      "title": "Quickstart",
+      "description": "Launch FluxServe and send your first chat completion request."
+    },
+    {
+      "source": "docs/architecture.md",
+      "slug": "docs/architecture",
+      "title": "Architecture",
+      "description": "How FluxServe handles requests, block scheduling, attention, and distributed execution."
+    },
+    {
+      "source": "docs/guides/benchmark.md",
+      "slug": "docs/benchmarking",
+      "title": "Benchmarking",
+      "description": "Measure offline throughput and online serving performance."
+    },
+    {
+      "source": "docs/guides/getting_started.md",
+      "slug": "guides/docker",
+      "title": "Docker installation",
+      "description": "Build the CUDA environment and install FluxServe on an NVIDIA GPU host."
+    },
+    {
+      "source": "docs/serving/llada2-mini.md",
+      "slug": "guides/llada2-mini",
+      "title": "LLaDA2.0-mini",
+      "description": "Serve LLaDA2.0-mini on one NVIDIA GPU."
+    },
+    {
+      "source": "docs/serving/llada2-flash.md",
+      "slug": "guides/llada2-flash",
+      "title": "LLaDA2.0-flash",
+      "description": "Serve LLaDA2.0-flash with tensor and expert parallelism on four GPUs."
+    },
+    {
+      "source": "docs/serving/llada2.1.md",
+      "slug": "guides/llada2-1",
+      "title": "LLaDA2.1",
+      "description": "Configure quality and speed presets with joint threshold decoding."
+    }
+  ],
+  "assets": [
+    "assets/logo.png"
+  ],
+  "editBranch": "codex/docs-site-source"
+}
