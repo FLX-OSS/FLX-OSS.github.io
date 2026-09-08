@@ -1,76 +1,88 @@
 ---
-import source from '../../fluxserve-docs.json';
-// Approximate readings from assets/figures/result.png, not raw benchmark measurements.
+// Approximate points read from the original published figure. Keep its axes and series.
 const rates = [2, 4, 8, 12, 16];
 const charts = [
-  { title: 'Mini · GSM8K', config: 'TP1 / EP1', max: 1000, flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
-  { title: 'Flash · GSM8K', config: 'TP4 / EP4', max: 600, flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
-  { title: 'Mini · BigCodeBench', config: 'TP1 / EP1', max: 1400, flux: [766, 1252, 1255, 1263, 1264], sglang: [830, 998, 1003, 997, 1005] },
-  { title: 'Flash · BigCodeBench', config: 'TP4 / EP4', max: 800, flux: [709, 718, 720, 714, 720], sglang: [629, 632, 629, 633, 632] },
+  { model: 'Mini', dataset: 'GSM8K', config: 'TP=1 · EP=1', min: 640, max: 935, ticks: [650, 700, 750, 800, 850, 900], flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
+  { model: 'Flash', dataset: 'GSM8K', config: 'TP=4 · EP=4', min: 482, max: 548, ticks: [490, 500, 510, 520, 530, 540], flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
+  { model: 'Mini', dataset: 'BigCodeBench', config: 'TP=1 · EP=1', min: 690, max: 1340, ticks: [700, 800, 900, 1000, 1100, 1200, 1300], flux: [766, 1252, 1255, 1263, 1264], sglang: [830, 998, 1003, 997, 1005] },
+  { model: 'Flash', dataset: 'BigCodeBench', config: 'TP=4 · EP=4', min: 604, max: 746, ticks: [620, 640, 660, 680, 700, 720, 740], flux: [709, 718, 720, 714, 720], sglang: [629, 632, 629, 633, 632] },
 ];
+const x = (rate: number) => 60 + (rate - 1) / 16 * 420;
 ---
-<section class="benchmark-card" aria-labelledby="benchmark-title">
-  <p class="eyebrow">LLADA2.0 · BENCHMARKS</p>
-  <h2 id="benchmark-title">Decode throughput</h2>
-  <p class="chart-unit">Tokens / second · higher is better</p>
-  <div class="rate-control" role="group" aria-label="Request rate in requests per second">
-    <span>Requests / s</span>
-    {rates.map((rate, index) => <button type="button" data-rate-index={index} aria-pressed={index === 4}>{rate}</button>)}
+<section class="benchmark-tabs" aria-label="FluxServe benchmarks">
+  <div class="tab-list" role="tablist" aria-label="Benchmark">
+    {charts.map((chart, i) => <button type="button" role="tab" id={`benchmark-tab-${i}`} aria-controls={`benchmark-panel-${i}`} aria-selected={i === 0} tabindex={i === 0 ? 0 : -1}>
+      <span>{chart.model}</span><small>{chart.dataset}</small>
+    </button>)}
   </div>
-  <div class="chart-legend"><span><i class="flux"></i>FluxServe</span><span><i class="sglang"></i>SGLang</span></div>
-  <div class="benchmark-plots">
-    {charts.map(chart => <section class="benchmark-plot">
-      <h3>{chart.title}<small>{chart.config}</small></h3>
-      {(['flux', 'sglang'] as const).map(engine => <div class="chart-row" data-values={JSON.stringify(chart[engine])} data-max={chart.max} aria-label={`${engine === 'flux' ? 'FluxServe' : 'SGLang'}: approximately ${chart[engine][4]} tokens per second`}>
-        <div class="bar-track"><div class:list={['chart-bar', engine]} style={`width:${chart[engine][4] / chart.max * 100}%`}></div></div>
-        <span class="chart-value">≈{chart[engine][4].toLocaleString('en-US')}</span>
-      </div>)}
-      <div class="chart-scale" aria-hidden="true"><span>0</span><span>{chart.max.toLocaleString('en-US')}</span></div>
-    </section>)}
-  </div>
-  <p class="chart-source">Approximate values read from the <a href={`https://github.com/${source.repository}/blob/${source.revision}/assets/figures/result.png`}>published figure · {source.revision.slice(0, 7)}</a>. Project-reported results; configuration details are incomplete. <a href="/docs/guides/benchmark/#published-performance-figure">Benchmark context ↗</a></p>
+  {charts.map((chart, i) => {
+    const y = (value: number) => 290 - (value - chart.min) / (chart.max - chart.min) * 255;
+    return <div role="tabpanel" id={`benchmark-panel-${i}`} aria-labelledby={`benchmark-tab-${i}`} hidden={i !== 0} tabindex="0">
+      <div class="legend"><span><i class="flux"></i>FluxServe</span><span><i class="sglang"></i>SGLang</span></div>
+      <svg viewBox="-25 0 535 345" role="img" aria-labelledby={`chart-title-${i} chart-desc-${i}`}>
+        <title id={`chart-title-${i}`}>{chart.model} · {chart.dataset}</title>
+        <desc id={`chart-desc-${i}`}>Decode throughput versus request rate, reconstructed from approximate points in the published figure. The vertical axis starts at {chart.min}, matching the original chart's range.</desc>
+        <text class="axis-label" transform="translate(-10 163) rotate(-90)" text-anchor="middle">Decode throughput (tokens/s)</text>
+        {chart.ticks.map(tick => <g><line class="grid" x1="60" x2="480" y1={y(tick)} y2={y(tick)} /><text x="48" y={y(tick) + 4} text-anchor="end">{tick}</text></g>)}
+        {[4, 8, 12, 16].map(rate => <g><line class="grid" x1={x(rate)} x2={x(rate)} y1="35" y2="290" /><text x={x(rate)} y="313" text-anchor="middle">{rate}</text></g>)}
+        <text x="270" y="339" text-anchor="middle">Request rate (req/s)</text>
+        <defs><clipPath id={`line-reveal-${i}`}><rect class="reveal" x="60" y="30" width="420" height="265" /></clipPath></defs>
+        <g clip-path={`url(#line-reveal-${i})`}>
+          {(['flux', 'sglang'] as const).map(engine => <g class={engine}>
+            <polyline points={chart[engine].map((value, index) => `${x(rates[index])},${y(value)}`).join(' ')} fill="none" stroke-width="3" stroke-dasharray={engine === 'sglang' ? '8 6' : undefined} />
+            {chart[engine].map((value, index) => <circle cx={x(rates[index])} cy={y(value)} r="3.5" />)}
+          </g>)}
+        </g>
+      </svg>
+      <p class="chart-note">LLaDA2.0-{chart.model.toLowerCase()} · {chart.config}</p>
+    </div>;
+  })}
+  <footer><a href="/docs/guides/benchmark/#published-performance-figure">Benchmark details ↗</a></footer>
 </section>
 <script>
-  document.querySelectorAll<HTMLElement>('.benchmark-card').forEach(card => {
-    card.querySelectorAll<HTMLButtonElement>('[data-rate-index]').forEach(button => {
-      button.addEventListener('click', () => {
-        const index = Number(button.dataset.rateIndex);
-        card.querySelectorAll('[data-rate-index]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-        card.querySelectorAll<HTMLElement>('.chart-row').forEach(row => {
-          const value = JSON.parse(row.dataset.values!)[index];
-          row.querySelector<HTMLElement>('.chart-bar')!.style.width = value / Number(row.dataset.max) * 100 + '%';
-          row.querySelector('.chart-value')!.textContent = '≈' + value.toLocaleString('en-US');
-          const engine = row.querySelector('.flux') ? 'FluxServe' : 'SGLang';
-          row.setAttribute('aria-label', engine + ': approximately ' + value + ' tokens per second');
-        });
+  document.querySelectorAll<HTMLElement>('.benchmark-tabs').forEach(card => {
+    const tabs = [...card.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...card.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    function select(index: number) {
+      tabs.forEach((tab, i) => { tab.setAttribute('aria-selected', String(i === index)); tab.tabIndex = i === index ? 0 : -1; panels[i].hidden = i !== index; });
+      tabs[index].focus();
+    }
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', event => {
+        const next = event.key === 'ArrowRight' ? (i + 1) % tabs.length : event.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
+        if (next !== null) { event.preventDefault(); select(next); }
       });
     });
   });
 </script>
 <style>
-  .benchmark-card { min-width: 0; padding: 1.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-  h2 { font-size: 1.65rem; letter-spacing: -.035em; margin: .5rem 0 .2rem; }
-  .chart-unit, .chart-legend, .rate-control { font-size: .75rem; color: var(--muted); }
-  .rate-control { display: flex; align-items: center; gap: .25rem; margin: 1.1rem 0; flex-wrap: wrap; }
-  .rate-control > span { margin-right: auto; }
-  button { min-width: 34px; min-height: 36px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font: inherit; }
-  button[aria-pressed='true'] { background: var(--brand); color: white; }
-  button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-  .chart-legend, .chart-legend span { display: flex; align-items: center; gap: .4rem; }
-  .chart-legend { gap: 1.2rem; margin-bottom: 1.1rem; }
-  .chart-legend i { width: 8px; height: 8px; border-radius: 2px; }
-  .flux { background: linear-gradient(90deg, #f46e58, #da2057); }
-  .sglang { background: #df9639; }
-  .benchmark-plots { display: grid; gap: 1rem; }
-  h3 { display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: .8rem; font-weight: 600; margin-bottom: .45rem; }
-  h3 small { color: var(--muted); font-size: .65rem; font-weight: 400; }
-  .chart-row { display: grid; grid-template-columns: 1fr 3.5rem; align-items: center; gap: .5rem; margin: .3rem 0; }
-  .bar-track { background: var(--line); border-radius: 3px; overflow: hidden; }
-  .chart-bar { height: 10px; border-radius: 3px; transform-origin: left; animation: grow .9s ease-out both; transition: width .6s ease; }
-  .chart-value { text-align: right; font: .7rem var(--sl-font-mono); color: var(--sl-color-gray-2); }
-  .chart-scale { display: flex; justify-content: space-between; margin-right: 4rem; color: var(--muted); font: .6rem var(--sl-font-mono); }
-  .chart-source { border-top: 1px solid var(--line); margin-top: 1.2rem; padding-top: .8rem; font-size: .65rem; line-height: 1.65; color: var(--muted); }
-  .chart-source a { color: var(--brand); }
-  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  @media(prefers-reduced-motion: reduce) { .chart-bar { animation: none; transition: none; } }
+  .benchmark-tabs { min-width: 0; border: 1px solid var(--line); background: var(--sl-color-bg); }
+  .tab-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+  button { font: inherit; cursor: pointer; color: var(--muted); background: transparent; border: 0; }
+  [role='tab'] { padding: 1rem .2rem; border-right: 1px solid var(--line); }
+  [role='tab']:last-child { border-right: 0; }
+  [role='tab'][aria-selected='true'] { color: var(--sl-color-white); background: var(--surface); box-shadow: inset 0 -2px var(--brand); }
+  [role='tab'] span { display: block; font-size: 1.1rem; font-weight: 650; }
+  [role='tab'] small { display: block; font-size: .8rem; margin-top: .2rem; }
+  [role='tabpanel'] { padding: 1.6rem 1.3rem .8rem; }
+  .chart-note { margin: .65rem 0 0; color: var(--muted); font-size: .75rem; font-weight: 400; }
+  .legend { display: flex; gap: 1.2rem; margin-top: 0; font-size: .7rem; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: .4rem; }
+  .legend i { width: 20px; height: 0; border-top: 2px solid #c72635; }
+  .legend .sglang { border-top: 2px dashed #f58a16; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  svg text { fill: var(--muted); font: 13px var(--sl-font-mono); }
+  .grid { stroke: var(--line); stroke-dasharray: 3 3; }
+  svg .flux { stroke: #c72635; fill: #c72635; }
+  svg .sglang { stroke: #f58a16; fill: #f58a16; }
+  :global([data-theme='dark']) svg .flux { stroke: #fa6173; fill: #fa6173; }
+  :global([data-theme='dark']) .legend .flux { border-color: #fa6173; }
+  .reveal { transform-box: fill-box; transform-origin: left center; animation: draw 1.6s ease-in-out both; }
+  footer { margin: 0 1.3rem; padding: .85rem 0; border-top: 1px solid var(--line); text-align: right; }
+  footer a { color: var(--muted); font-size: .7rem; }
+  button:focus-visible, [role='tabpanel']:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+  @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @media(prefers-reduced-motion: reduce) { .reveal { animation: none; } }
+  @media(max-width: 400px) { [role='tab'] span { font-size: 1rem; } [role='tab'] small { font-size: .7rem; } [role='tabpanel'] { padding: 1.2rem .65rem .5rem; } }
 </style>
