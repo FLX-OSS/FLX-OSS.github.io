@@ -1,15 +1,8 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { Code } from '@astrojs/starlight/components';
-const command = [
-  'CUDA_VISIBLE_DEVICES=0 fluxserve serve \\',
-  '  --model inclusionAI/LLaDA2.0-mini \\',
-  '  --host 127.0.0.1 --port 8000 \\',
-  '  --tp-size 1 --dp-size 1 --ep-size 1 \\',
-  '  --attention-backend flashinfer \\',
-  '  --kv-cache-layout paged \\',
-  '  --scheduler-policy paged',
-].join('\n');
+import BenchmarkChart from '../components/BenchmarkChart.astro';
+const install = 'git clone https://github.com/FLX-OSS/FluxServe\ncd FluxServe\nexport PIP_BREAK_SYSTEM_PACKAGES=1\npip install -e flux-kernel/python/ --no-build-isolation\npip install -e flux-scheduler\npip install -e .';
 ---
 <StarlightPage frontmatter={{ title: 'Serving diffusion, one block at a time.', description: 'FluxServe is a lightweight serving engine for diffusion language models. Get started with block-level scheduling, efficient attention, and multi-GPU execution.', template: 'splash', editUrl: false, lastUpdated: false }}>
   <div class="landing not-content">
@@ -22,19 +15,9 @@ const command = [
           <a class="button primary" href="/docs/guides/quickstart/">Get started <span aria-hidden="true">↗</span></a>
           <a class="button secondary" href="https://github.com/FLX-OSS/FluxServe">View on GitHub <span aria-hidden="true">→</span></a>
         </div>
-        <p class="hero-note">NVIDIA GPUs · CUDA · Python + C++</p>
+        <div class="hero-install"><p>Install from source inside the <a href="/docs/guides/getting_started/">FluxServe CUDA container ↗</a></p><Code code={install} lang="bash" frame="none" /></div>
       </div>
-      <div class="hero-demo">
-        <div class="terminal-top"><span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>YOUR FIRST SERVER</span><span class="terminal-language">bash</span></div>
-        <Code code={command} lang="bash" frame="none" />
-        <div class="terminal-bottom"><span class="small-dot"></span> Local endpoint <code>127.0.0.1:8000</code></div>
-        <p class="demo-prerequisite">Already installed? Run this in your FluxServe environment.<br /><a href="/docs/guides/getting_started/">Set up Docker and CUDA first <span aria-hidden="true">→</span></a></p>
-        <div class="block-illustration" aria-hidden="true">
-          <span class="block-label">PROMPT</span><div class="token-group"><i></i><i></i><i></i><i></i></div>
-          <span class="flow-arrow">→</span>
-          <span class="block-label">DECODE</span><div class="token-group active"><i></i><i></i><i></i><i></i></div>
-        </div>
-      </div>
+      <BenchmarkChart />
     </section>
     <section class="capabilities" aria-labelledby="built-for-blocks">
       <div class="section-heading"><p class="eyebrow">INSIDE FLUXSERVE</p><h2 id="built-for-blocks">Built for the way diffusion generates.</h2><p>Attention, scheduling, and execution. Designed around the block.</p></div>

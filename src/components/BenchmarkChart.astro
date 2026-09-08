@@ -1,0 +1,76 @@
+---
+import source from '../../fluxserve-docs.json';
+// Approximate readings from assets/figures/result.png, not raw benchmark measurements.
+const rates = [2, 4, 8, 12, 16];
+const charts = [
+  { title: 'Mini · GSM8K', config: 'TP1 / EP1', max: 1000, flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
+  { title: 'Flash · GSM8K', config: 'TP4 / EP4', max: 600, flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
+  { title: 'Mini · BigCodeBench', config: 'TP1 / EP1', max: 1400, flux: [766, 1252, 1255, 1263, 1264], sglang: [830, 998, 1003, 997, 1005] },
+  { title: 'Flash · BigCodeBench', config: 'TP4 / EP4', max: 800, flux: [709, 718, 720, 714, 720], sglang: [629, 632, 629, 633, 632] },
+];
+---
+<section class="benchmark-card" aria-labelledby="benchmark-title">
+  <p class="eyebrow">LLADA2.0 · BENCHMARKS</p>
+  <h2 id="benchmark-title">Decode throughput</h2>
+  <p class="chart-unit">Tokens / second · higher is better</p>
+  <div class="rate-control" role="group" aria-label="Request rate in requests per second">
+    <span>Requests / s</span>
+    {rates.map((rate, index) => <button type="button" data-rate-index={index} aria-pressed={index === 4}>{rate}</button>)}
+  </div>
+  <div class="chart-legend"><span><i class="flux"></i>FluxServe</span><span><i class="sglang"></i>SGLang</span></div>
+  <div class="benchmark-plots">
+    {charts.map(chart => <section class="benchmark-plot">
+      <h3>{chart.title}<small>{chart.config}</small></h3>
+      {(['flux', 'sglang'] as const).map(engine => <div class="chart-row" data-values={JSON.stringify(chart[engine])} data-max={chart.max} aria-label={`${engine === 'flux' ? 'FluxServe' : 'SGLang'}: approximately ${chart[engine][4]} tokens per second`}>
+        <div class="bar-track"><div class:list={['chart-bar', engine]} style={`width:${chart[engine][4] / chart.max * 100}%`}></div></div>
+        <span class="chart-value">≈{chart[engine][4].toLocaleString('en-US')}</span>
+      </div>)}
+      <div class="chart-scale" aria-hidden="true"><span>0</span><span>{chart.max.toLocaleString('en-US')}</span></div>
+    </section>)}
+  </div>
+  <p class="chart-source">Approximate values read from the <a href={`https://github.com/${source.repository}/blob/${source.revision}/assets/figures/result.png`}>published figure · {source.revision.slice(0, 7)}</a>. Project-reported results; configuration details are incomplete. <a href="/docs/guides/benchmark/#published-performance-figure">Benchmark context ↗</a></p>
+</section>
+<script>
+  document.querySelectorAll<HTMLElement>('.benchmark-card').forEach(card => {
+    card.querySelectorAll<HTMLButtonElement>('[data-rate-index]').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = Number(button.dataset.rateIndex);
+        card.querySelectorAll('[data-rate-index]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+        card.querySelectorAll<HTMLElement>('.chart-row').forEach(row => {
+          const value = JSON.parse(row.dataset.values!)[index];
+          row.querySelector<HTMLElement>('.chart-bar')!.style.width = value / Number(row.dataset.max) * 100 + '%';
+          row.querySelector('.chart-value')!.textContent = '≈' + value.toLocaleString('en-US');
+          const engine = row.querySelector('.flux') ? 'FluxServe' : 'SGLang';
+          row.setAttribute('aria-label', engine + ': approximately ' + value + ' tokens per second');
+        });
+      });
+    });
+  });
+</script>
+<style>
+  .benchmark-card { min-width: 0; padding: 1.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  h2 { font-size: 1.65rem; letter-spacing: -.035em; margin: .5rem 0 .2rem; }
+  .chart-unit, .chart-legend, .rate-control { font-size: .75rem; color: var(--muted); }
+  .rate-control { display: flex; align-items: center; gap: .25rem; margin: 1.1rem 0; flex-wrap: wrap; }
+  .rate-control > span { margin-right: auto; }
+  button { min-width: 34px; min-height: 36px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font: inherit; }
+  button[aria-pressed='true'] { background: var(--brand); color: white; }
+  button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .chart-legend, .chart-legend span { display: flex; align-items: center; gap: .4rem; }
+  .chart-legend { gap: 1.2rem; margin-bottom: 1.1rem; }
+  .chart-legend i { width: 8px; height: 8px; border-radius: 2px; }
+  .flux { background: linear-gradient(90deg, #f46e58, #da2057); }
+  .sglang { background: #df9639; }
+  .benchmark-plots { display: grid; gap: 1rem; }
+  h3 { display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: .8rem; font-weight: 600; margin-bottom: .45rem; }
+  h3 small { color: var(--muted); font-size: .65rem; font-weight: 400; }
+  .chart-row { display: grid; grid-template-columns: 1fr 3.5rem; align-items: center; gap: .5rem; margin: .3rem 0; }
+  .bar-track { background: var(--line); border-radius: 3px; overflow: hidden; }
+  .chart-bar { height: 10px; border-radius: 3px; transform-origin: left; animation: grow .9s ease-out both; transition: width .6s ease; }
+  .chart-value { text-align: right; font: .7rem var(--sl-font-mono); color: var(--sl-color-gray-2); }
+  .chart-scale { display: flex; justify-content: space-between; margin-right: 4rem; color: var(--muted); font: .6rem var(--sl-font-mono); }
+  .chart-source { border-top: 1px solid var(--line); margin-top: 1.2rem; padding-top: .8rem; font-size: .65rem; line-height: 1.65; color: var(--muted); }
+  .chart-source a { color: var(--brand); }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @media(prefers-reduced-motion: reduce) { .chart-bar { animation: none; transition: none; } }
+</style>
