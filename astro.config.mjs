@@ -9,7 +9,7 @@ export default defineConfig({
   integrations: [starlight({
     title: 'FluxServe',
     description: 'A serving engine for diffusion language models.',
-    favicon: '/favicon.svg',
+    favicon: '/fluxserve-icon.png',
     customCss: ['./src/styles/site.css'],
     credits: false,
     disable404Route: true,
@@ -18,19 +18,6 @@ export default defineConfig({
       PageTitle: './src/components/PageTitle.astro',
       Footer: './src/components/Footer.astro',
     },
-    sidebar: [
-      { label: 'Documentation', items: [
-        { label: 'Introduction', slug: 'docs' },
-        { label: 'Quickstart', slug: 'docs/quickstart' },
-        { label: 'Architecture', slug: 'docs/architecture' },
-        { label: 'Benchmarking', slug: 'docs/benchmarking' },
-      ] },
-      { label: 'Deployment guides', items: [
-        { label: 'Docker installation', slug: 'docs/guides/docker' },
-        { label: 'LLaDA2.0-mini · 1 GPU', slug: 'docs/guides/llada2-mini' },
-        { label: 'LLaDA2.0-flash · 4 GPUs', slug: 'docs/guides/llada2-flash' },
-        { label: 'LLaDA2.1', slug: 'docs/guides/llada2-1' },
-      ] },
-    ],
+    sidebar: [{ autogenerate: { directory: 'docs' } }],
   })],
 });

@@ -1,7 +1,6 @@
 import { defineCollection } from 'astro:content';
 import { glob, type Loader } from 'astro/loaders';
 import { z } from 'astro/zod';
-import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
 
 const blogFiles = glob({ pattern: '**/*.md', base: './src/content/blog' });
@@ -16,7 +15,13 @@ const blogLoader: Loader = {
 };
 
 export const collections = {
-  docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
+  docs: defineCollection({
+    loader: glob({
+      pattern: '**/*.md', base: './src/content/docs',
+      generateId: ({ entry }) => entry.replace(/\.md$/, '').replace(/\/index$/, ''),
+    }),
+    schema: docsSchema(),
+  }),
   blog: defineCollection({
     loader: blogLoader,
     schema: z.object({

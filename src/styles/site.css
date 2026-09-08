@@ -146,3 +146,5 @@ html:has(.landing) main { padding-top: 0; }
 }
 @media(max-width: 380px) { .brand img { width: 105px; }[data-theme='dark'] .brand img { width: 85px; }.header-tools { gap: .25rem; }.primary-nav { gap: 1rem; }.block-label { font-size: .55rem; }.token-group i { width: 12px; }.hero-actions { gap: .6rem; }.button { gap: .6rem; padding-inline: .85rem; } }
 @media(prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+
+.sidebar-content summary .large { text-transform: capitalize; }
