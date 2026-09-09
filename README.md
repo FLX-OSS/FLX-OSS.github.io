@@ -36,7 +36,7 @@ npm test
 npm run preview
 ```
 
-The production build fetches the exact FluxServe commit in `fluxserve-docs.json`. It does not need a sibling checkout and rejects `FLUXSERVE_SOURCE`. Generated pages, imported assets, source caches, and build outputs are ignored by Git.
+Every production build fetches the latest FluxServe `main`. The resolved commit is used for source attribution and repository-file links; no revision pin needs updating. It does not need a sibling checkout and rejects `FLUXSERVE_SOURCE`. Generated pages, imported assets, source caches, and build outputs are ignored by Git.
 
 The build validates page titles, descriptions, canonical URLs, local links, heading anchors, assets, sitemap, and search output. Tests cover import failures, URL rewriting, stale-page removal, and blog publication. Blog integration tests create an isolated temporary site and verify that draft articles appear in neither routes nor search.
 
@@ -47,16 +47,16 @@ Browser verification covers responsive navigation, theme selection and persisten
 Technical content belongs in **FLX-OSS/FluxServe**, not this repository.
 
 1. Edit the Markdown in FluxServe and preview it using `npm run dev` or `npm run build:local`.
-2. Commit and publish the reviewed FluxServe documentation changes.
-3. Set `revision` in `fluxserve-docs.json` to the complete 40-character published commit SHA.
-4. Set `editBranch` to the branch where documentation edits belong (normally `main`). The initial website uses `codex/docs-site-source` while its documentation PR awaits review; update the pin and edit branch after that PR merges.
-5. Run the production checks and review the website change before merging.
+2. Merge the documentation changes into FluxServe `main`.
+3. Run the website’s **Build and deploy website** workflow manually, or let the next website `main` push rebuild it.
+
+FluxServe merges do not currently trigger a website build automatically. The deployed site remains a static snapshot until the next successful build. The initial docs cleanup must be merged into FluxServe `main` before production builds can succeed.
 
 Every Markdown file in FluxServe’s `docs/` folder is published automatically, preserving folders and filenames: `docs/serving/llada2.1.md` becomes `/docs/serving/llada2.1/`. An `index.md` becomes its folder’s entry page; `docs/index.md` is required. Titles come from the first level-one heading and descriptions from the first paragraph. The sidebar follows the folders. Keep internal planning notes outside `docs/`; there is no website page allowlist.
 
-The importer rewrites links between public docs, copies referenced image/PDF assets, and points other repository-file links to the pinned GitHub revision. Missing source files, asset files, and imported-page anchors fail the build. Each imported page links to its exact source revision.
+The importer rewrites links between public docs, copies referenced image/PDF assets, and points other repository-file links to the commit resolved for that build. Missing source files, asset files, and imported-page anchors fail the build. Each imported page links to its exact source revision.
 
-The disposable source cache is under `.cache/fluxserve/<revision>`. The importer only resets this cache; it never resets the local FluxServe checkout.
+The disposable source cache is under `.cache/fluxserve/main`. The importer only resets this cache; it never resets the local FluxServe checkout.
 
 ## Writing a blog post
 
@@ -81,11 +81,11 @@ Set `draft: false` when ready to publish. Drafts are excluded from the blog inde
 
 GitHub Pages must use **GitHub Actions** as its build source. The workflow checks pull requests without deploying and publishes successful `main` builds; it can also be started manually from Actions. It uses the built-in GitHub token, with Pages write permissions limited to the deployment job.
 
-The canonical origin is `https://flx-oss.github.io` with no repository-name prefix. No custom domain is configured. To roll back, revert the website commit (including the documentation pin if changed) and let the normal workflow redeploy.
+The canonical origin is `https://flx-oss.github.io` with no repository-name prefix. No custom domain is configured. To roll back documentation, revert the relevant change in FluxServe main and rebuild the website. Website code can be rolled back by reverting its commit.
 
 ## Structure
 
-- `fluxserve-docs.json`: pinned source revision, edit branch, and shared brand assets.
+- `fluxserve-docs.json`: source repository and shared brand assets.
 - `scripts/`: Markdown importer and built-site link/metadata validation.
 - `src/pages/`: custom homepage, blog, and 404; all documentation, including deployment guides, is imported under `/docs/`.
 - `src/components/`, `src/styles/`: shared navigation and FluxServe styling.

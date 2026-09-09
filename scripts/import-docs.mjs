@@ -15,8 +15,8 @@ const textOf = (node) => node.value ?? node.children?.map(textOf).join('') ?? ''
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export function validateSource(config) {
-  if (!/^[\w.-]+\/[\w.-]+$/.test(config.repository) || !/^[a-f0-9]{40}$/.test(config.revision))
-    throw new Error('Expected a GitHub repository and a full pinned commit SHA.');
+  if (!/^[\w][\w.-]*\/[\w][\w.-]*$/.test(config.repository))
+    throw new Error('Expected a GitHub repository.');
 }
 
 function within(rootDir, relative) {
@@ -28,12 +28,13 @@ function within(rootDir, relative) {
 
 export async function importDocs({ sourceDir, outputDir, publicDir, config, local = false }) {
   validateSource(config);
+  if (!/^[a-f0-9]{40}$/.test(config.revision)) throw new Error('Expected a resolved commit SHA.');
   const sourceURL = 'https://github.com/' + config.repository;
   const entries = await readdir(path.join(sourceDir, 'docs'), { recursive: true, withFileTypes: true });
   const sources = entries.filter(entry => entry.isFile() && entry.name.endsWith('.md'))
     .map(entry => path.relative(sourceDir, path.join(entry.parentPath, entry.name)).split(path.sep).join('/')).sort();
   if (!sources.includes('docs/index.md'))
-    throw new Error('Missing docs/index.md. Publish the docs cleanup and update the source revision before a production build.');
+    throw new Error('Missing docs/index.md. Merge the docs cleanup into FluxServe main before a production build.');
   const pages = new Map(), slugs = new Set();
   const trees = new Map(), headings = new Map(), topHeadings = new Map();
   const assets = new Set(config.assets ?? []);
@@ -105,7 +106,7 @@ export async function importDocs({ sourceDir, outputDir, publicDir, config, loca
     }
     const frontmatter = {
       title: page.title, description: page.description,
-      editUrl: sourceURL + '/edit/' + encodeURIComponent(config.editBranch ?? 'main') + '/' + page.source,
+      editUrl: sourceURL + '/edit/' + 'main' + '/' + page.source,
     };
     const metadata = Object.entries(frontmatter).map(([key, value]) => key + ': ' + JSON.stringify(value)).join('\n');
     const provenance = local ? 'Local documentation preview' : 'Source revision';
@@ -132,30 +133,32 @@ export async function importDocs({ sourceDir, outputDir, publicDir, config, loca
   return { pages: rendered.length, assets: assets.size };
 }
 
+export async function fetchMain(sourceDir, repositoryURL) {
+  await mkdir(sourceDir, { recursive: true });
+  const git = (...args) => execFileSync('git', args, { cwd: sourceDir, stdio: 'pipe' }).toString().trim();
+  git('init');
+  // Fetch every time; a failed fetch must never silently reuse stale documentation.
+  git('fetch', '--depth=1', repositoryURL, 'refs/heads/main');
+  git('checkout', '--detach', '--force', 'FETCH_HEAD');
+  git('clean', '-fd');
+  return git('rev-parse', 'HEAD');
+}
+
 async function main() {
   const config = JSON.parse(await readFile(path.join(root, 'fluxserve-docs.json'), 'utf8'));
   validateSource(config);
   const local = process.argv.includes('--local');
   if (process.env.FLUXSERVE_SOURCE && !local)
-    throw new Error('FLUXSERVE_SOURCE is only allowed with --local. Production requires the pinned revision.');
+    throw new Error('FLUXSERVE_SOURCE is only allowed with --local. Production fetches FluxServe main.');
   let sourceDir;
   if (local) {
     sourceDir = path.resolve(process.env.FLUXSERVE_SOURCE ?? path.join(root, '../FluxServe'));
+    config.revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: sourceDir, encoding: 'utf8' }).trim();
   } else {
-    sourceDir = path.join(root, '.cache/fluxserve', config.revision);
-    await mkdir(sourceDir, { recursive: true });
-    const git = (...args) => execFileSync('git', args, { cwd: sourceDir, stdio: 'pipe' });
-    let current = '';
-    try { current = git('rev-parse', 'HEAD').toString().trim(); } catch {}
-    if (current !== config.revision) {
-      git('init');
-      git('fetch', '--depth=1', 'https://github.com/' + config.repository + '.git', config.revision);
-      git('checkout', '--detach', 'FETCH_HEAD');
-    }
-    // Restore only this disposable cache, never the author's checkout.
-    git('reset', '--hard', config.revision);
-    git('clean', '-fd');
+    sourceDir = path.join(root, '.cache/fluxserve/main');
+    config.revision = await fetchMain(sourceDir, 'https://github.com/' + config.repository + '.git');
   }
+
   const result = await importDocs({
     sourceDir, config, local,
     outputDir: path.join(root, 'src/content/docs'),

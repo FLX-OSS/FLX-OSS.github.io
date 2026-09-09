@@ -1,8 +1,6 @@
 {
   "repository": "FLX-OSS/FluxServe",
-  "revision": "a171bad8a5b935be4111e8b48f40607d5e18c6ee",
   "assets": [
     "assets/logo.png"
-  ],
-  "editBranch": "codex/docs-site-source"
+  ]
 }
