@@ -124,3 +124,26 @@ html:has(.landing) main { padding-top: 0; }
 @media(prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
 
 .sidebar-content summary .large { text-transform: capitalize; }
+
+/* Keep the reading column centered between equal sidebars on wide screens. */
+@media (min-width: 72rem) {
+  html[data-has-sidebar] { --docs-layout-width: 94rem; }
+  html[data-has-sidebar] .main-frame {
+    width: 100%;
+    max-width: var(--docs-layout-width);
+    margin-inline: auto;
+  }
+  html[data-has-sidebar] .sidebar-pane {
+    inset-inline-start: max(0px, calc((100% - var(--docs-layout-width)) / 2));
+  }
+  html[data-has-sidebar][data-has-toc] .main-pane {
+    --sl-content-margin-inline: auto;
+    width: calc(100% - var(--sl-sidebar-width));
+    min-width: 0;
+  }
+  html[data-has-sidebar] .right-sidebar-container,
+  html[data-has-sidebar] .right-sidebar {
+    width: var(--sl-sidebar-width);
+    flex-shrink: 0;
+  }
+}
