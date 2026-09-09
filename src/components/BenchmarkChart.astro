@@ -2,10 +2,10 @@
 // Approximate points read from the original published figure. Keep its axes and series.
 const rates = [2, 4, 8, 12, 16];
 const charts = [
-  { model: 'Mini', dataset: 'GSM8K', config: 'TP=1 · EP=1', min: 640, max: 935, ticks: [650, 700, 750, 800, 850, 900], flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
-  { model: 'Flash', dataset: 'GSM8K', config: 'TP=4 · EP=4', min: 482, max: 548, ticks: [490, 500, 510, 520, 530, 540], flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
   { model: 'Mini', dataset: 'BigCodeBench', config: 'TP=1 · EP=1', min: 690, max: 1340, ticks: [700, 800, 900, 1000, 1100, 1200, 1300], flux: [766, 1252, 1255, 1263, 1264], sglang: [830, 998, 1003, 997, 1005] },
   { model: 'Flash', dataset: 'BigCodeBench', config: 'TP=4 · EP=4', min: 604, max: 746, ticks: [620, 640, 660, 680, 700, 720, 740], flux: [709, 718, 720, 714, 720], sglang: [629, 632, 629, 633, 632] },
+  { model: 'Mini', dataset: 'GSM8K', config: 'TP=1 · EP=1', min: 640, max: 935, ticks: [650, 700, 750, 800, 850, 900], flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
+  { model: 'Flash', dataset: 'GSM8K', config: 'TP=4 · EP=4', min: 482, max: 548, ticks: [490, 500, 510, 520, 530, 540], flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
 ];
 const x = (rate: number) => 60 + (rate - 1) / 16 * 420;
 ---
