@@ -10,7 +10,7 @@ export default defineConfig({
     title: 'FluxServe',
     description: 'A serving engine for diffusion language models.',
     favicon: '/fluxserve-icon.png',
-    customCss: ['./src/styles/site.css'],
+    customCss: ['./src/styles/site.css', './src/styles/controls.css'],
     credits: false,
     disable404Route: true,
     components: {

@@ -1,4 +1,12 @@
 ---
 import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
+import PageActions from './PageActions.astro';
+const { hasSidebar, entry } = Astro.locals.starlightRoute;
 ---
-{Astro.url.pathname !== '/' && <DefaultPageTitle />}
+{Astro.url.pathname !== '/' && (
+  hasSidebar ? <div class="docs-title-row"><DefaultPageTitle /><PageActions id={entry.id} /></div> : <DefaultPageTitle />
+)}
+<style>
+  .docs-title-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+  .docs-title-row :global(h1) { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+</style>
