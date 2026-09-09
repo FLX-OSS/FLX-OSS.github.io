@@ -1,0 +1,35 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+---
+<button class="theme-toggle" type="button" aria-label="Theme: Auto. Switch to Light." title="Theme: Auto. Switch to Light.">
+  <span data-theme-icon="auto"><Icon name="laptop" /></span>
+  <span data-theme-icon="light" hidden><Icon name="sun" /></span>
+  <span data-theme-icon="dark" hidden><Icon name="moon" /></span>
+</button>
+<script is:inline>
+  (() => {
+    const button = document.currentScript.previousElementSibling;
+    const modes = ['auto', 'light', 'dark'];
+    const labels = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+    const stored = localStorage.getItem('starlight-theme');
+    let mode = modes.includes(stored) ? stored : 'auto';
+    const system = matchMedia('(prefers-color-scheme: dark)');
+    function update() {
+      document.documentElement.dataset.theme = mode === 'auto' ? (system.matches ? 'dark' : 'light') : mode;
+      const next = modes[(modes.indexOf(mode) + 1) % modes.length];
+      const label = 'Theme: ' + labels[mode] + '. Switch to ' + labels[next] + '.';
+      button.title = label;
+      button.setAttribute('aria-label', label);
+      button.querySelectorAll('[data-theme-icon]').forEach(icon => {
+        icon.hidden = icon.dataset.themeIcon !== mode;
+      });
+    }
+    button.addEventListener('click', () => {
+      mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+      localStorage.setItem('starlight-theme', mode === 'auto' ? '' : mode);
+      update();
+    });
+    system.addEventListener('change', () => { if (mode === 'auto') update(); });
+    update();
+  })();
+</script>

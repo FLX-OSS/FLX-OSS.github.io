@@ -1,0 +1,5 @@
+---
+import DefaultFooter from '@astrojs/starlight/components/Footer.astro';
+const { hasSidebar } = Astro.locals.starlightRoute;
+---
+{hasSidebar && <DefaultFooter />}
