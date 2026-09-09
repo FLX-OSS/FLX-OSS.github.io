@@ -1,0 +1,93 @@
+/* Shared neutral controls, including Starlight's search and contents controls. */
+:root {
+  --control-height: 40px;
+  --control-radius: 6px;
+  --control-icon: 20px;
+  --control-hover: var(--sl-color-gray-6);
+}
+.header-tools site-search > button,
+mobile-starlight-toc .toggle,
+.page-actions .action-buttons,
+.header-tools .theme-toggle,
+.header-tools .github-link {
+  box-sizing: border-box;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  box-shadow: none;
+  font-size: .875rem;
+}
+.header-tools site-search > button,
+mobile-starlight-toc .toggle { padding: 0 12px; gap: 8px; }
+.header-tools .theme-toggle,
+.header-tools .github-link { width: var(--control-height); display: grid; place-items: center; padding: 0; }
+.page-actions .copy-page,
+.page-actions summary {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: calc(var(--control-height) - 2px);
+  min-height: 0;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font: inherit;
+  cursor: pointer;
+}
+.page-actions .copy-page { border-radius: calc(var(--control-radius) - 1px) 0 0 calc(var(--control-radius) - 1px); }
+.page-actions summary {
+  width: calc(var(--control-height) - 1px);
+  padding: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0 calc(var(--control-radius) - 1px) calc(var(--control-radius) - 1px) 0;
+  list-style: none;
+}
+.header-tools site-search > button:hover,
+mobile-starlight-toc details .toggle:hover,
+mobile-starlight-toc details[open] .toggle,
+.page-actions .copy-page:hover,
+.page-actions summary:hover,
+.page-actions details[open] summary,
+.header-tools .theme-toggle:hover,
+.header-tools .github-link:hover {
+  color: var(--sl-color-white);
+  background: var(--control-hover);
+  border-color: var(--line);
+  box-shadow: none;
+}
+.header-tools :is(button, a):focus-visible,
+.page-actions :is(button, summary, a):focus-visible,
+mobile-starlight-toc summary:focus-visible,
+.sidebar-content :is(summary, a):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.header-tools :is(button, a) svg,
+.page-actions :is(button, summary) svg,
+mobile-starlight-toc .caret,
+.sidebar-content summary .caret {
+  width: var(--control-icon);
+  height: var(--control-icon);
+  font-size: var(--control-icon);
+  flex-shrink: 0;
+}
+/* Use the same right chevron, rotated consistently to indicate open state. */
+.page-actions summary svg { transform: rotate(90deg); }
+.page-actions details[open] summary svg { transform: rotate(-90deg); }
+.sidebar-content summary { border-radius: var(--control-radius); }
+.sidebar-content summary:hover,
+.sidebar-content a:not([aria-current='page']):hover,
+.page-actions .page-menu a:hover {
+  background: var(--control-hover);
+  color: var(--sl-color-white);
+}
+.page-actions .page-menu a { border-radius: calc(var(--control-radius) - 1px); }
+.header-tools .theme-toggle { flex-shrink: 0; cursor: pointer; }
+.theme-toggle span:not([hidden]) { display: flex; }
+@media(max-width: 49.99rem) { .header-tools .github-link { display: none; } }

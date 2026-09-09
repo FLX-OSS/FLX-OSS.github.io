@@ -1,0 +1,50 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+interface Props { id: string; }
+const { id } = Astro.props;
+const markdownURL = '/markdown/' + id.split('/').map(encodeURIComponent).join('/') + '.txt';
+---
+<div class="page-actions" data-markdown-url={markdownURL}>
+  <div class="action-buttons">
+    <button type="button" class="copy-page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="1" /><path d="M16 8V3H3v13h5" /></svg> <span>Copy page</span></button>
+    <details>
+      <summary aria-label="More page options"><Icon name="right-caret" size="20" /></summary>
+      <div class="page-menu"><a href={markdownURL} target="_blank" rel="noopener">View as Markdown ↗</a></div>
+    </details>
+  </div>
+  <span class="copy-status" role="status"></span>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('.page-actions').forEach(actions => {
+    const button = actions.querySelector<HTMLButtonElement>('.copy-page')!;
+    const label = button.querySelector('span')!;
+    const status = actions.querySelector('.copy-status')!;
+    const details = actions.querySelector('details')!;
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const response = await fetch(actions.dataset.markdownUrl!);
+        if (!response.ok) throw new Error('Markdown unavailable');
+        await navigator.clipboard.writeText(await response.text());
+        label.textContent = 'Copied';
+        status.textContent = 'Page Markdown copied.';
+      } catch {
+        status.textContent = 'Could not copy. Use View as Markdown to copy manually.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+    document.addEventListener('click', event => { if (!actions.contains(event.target as Node)) details.open = false; });
+    actions.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && details.open) { details.open = false; details.querySelector('summary')!.focus(); }
+    });
+  });
+</script>
+<style>
+  .page-actions { flex-shrink: 0; position: relative; width: fit-content; font-size: .8rem; }
+  .action-buttons { display: flex; }
+  summary::-webkit-details-marker { display: none; }
+  .page-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; min-width: 190px; padding: .4rem; border: 1px solid var(--line); border-radius: 6px; background: var(--sl-color-bg); box-shadow: 0 4px 12px #0002; }
+  .page-menu a { display: block; padding: .5rem; color: var(--sl-color-white); text-decoration: none; white-space: nowrap; }
+  .copy-status { position: absolute; right: 0; top: calc(100% + 6px); width: max-content; max-width: 220px; font-size: .75rem; color: var(--muted); }
+</style>
