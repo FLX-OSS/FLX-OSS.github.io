@@ -1,30 +1,26 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { Code } from '@astrojs/starlight/components';
-import BenchmarkChart from '../components/BenchmarkChart.astro';
 const install = 'docker pull flxoss/fluxserve:v0.1-cu130-fa4';
 ---
-<StarlightPage frontmatter={{ title: 'Serving diffusion, one block at a time.', description: 'FluxServe is a lightweight serving engine for diffusion language models. Get started with block-level scheduling, efficient attention, and multi-GPU execution.', template: 'splash', editUrl: false, lastUpdated: false }}>
+<StarlightPage frontmatter={{ title: 'FluxServe', head: [{ tag: 'title', content: 'FluxServe' }], description: 'FluxServe is a lightweight serving engine for diffusion language models. Get started with block-level scheduling, efficient attention, and multi-GPU execution.', template: 'splash', editUrl: false, lastUpdated: false }}>
   <div class="landing not-content">
     <section class="hero-section" aria-labelledby="_top">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="status-dot"></span> OPEN SOURCE · DIFFUSION INFERENCE</p>
-        <h1 id="_top" tabindex="-1">Serving diffusion,<br /><span>one block<br class="desktop-break" /> at a time.</span></h1>
+        <h1 id="_top" tabindex="-1"><span>FluxServe</span><br class="desktop-break" /><span class="hero-tagline">Flexible Diffusion <br class="desktop-break" /> LLM Inference.</span></h1>
         <p class="hero-description">A lightweight serving engine for diffusion language models. From your first request to multi-GPU inference.</p>
         <div class="hero-actions">
           <a class="button primary" href="/docs/guides/quickstart/">Get started <span aria-hidden="true">↗</span></a>
           <a class="button secondary" href="https://github.com/FLX-OSS/FluxServe">View on GitHub <span aria-hidden="true">→</span></a>
         </div>
-        <div class="hero-install"><p><a href="/docs/guides/getting_started/">Docker setup ↗</a></p><Code code={install} lang="bash" frame="none" /></div>
       </div>
-      <BenchmarkChart />
     </section>
     <section class="capabilities" aria-labelledby="built-for-blocks">
       <div class="section-heading"><p class="eyebrow">INSIDE FLUXSERVE</p><h2 id="built-for-blocks">Built for the way diffusion generates.</h2><p>Attention, scheduling, and execution. Designed around the block.</p></div>
       <div class="capability-grid">
-        <article><span class="feature-index">01 / ATTENTION</span><div class="feature-symbol attention-symbol" aria-hidden="true">{Array.from({length:16},(_,i)=><i class={i % 4 <= Math.floor(i / 4) ? 'filled' : ''}></i>)}</div><h3>Every block counts.</h3><p>Block-causal attention for variable-length prefill and decoding, with paged KV caching and CUDA graph support.</p><a href="/docs/architecture/#attention-and-decoding">Explore block attention <span aria-hidden="true">→</span></a></article>
-        <article><span class="feature-index">02 / SCHEDULING</span><div class="feature-symbol scheduler-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Keep requests moving.</h3><p>A C++ control plane and Python execution plane coordinate requests with fine-grained, block-level scheduling.</p><a href="/docs/architecture/#block-level-scheduling">Understand the scheduler <span aria-hidden="true">→</span></a></article>
-        <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p><a href="/docs/serving/llada2-flash/">Deploy across GPUs <span aria-hidden="true">→</span></a></article>
+        <article><span class="feature-index">01 / ATTENTION</span><div class="feature-symbol attention-symbol" aria-hidden="true">{Array.from({length:16},(_,i)=><i class={i % 4 <= Math.floor(i / 4) ? 'filled' : ''}></i>)}</div><h3>Every block counts.</h3><p>Block-causal attention for variable-length prefill and decoding, with native FlashInfer and FA4 support.</p></article>
+        <article><span class="feature-index">02 / SCHEDULING</span><div class="feature-symbol scheduler-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Keep requests moving.</h3><p>A C++ control plane and Python execution plane coordinate requests with fine-grained, block-level scheduling.</p></article>
+        <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p></article>
       </div>
     </section>
     <section class="start-strip" aria-labelledby="start-heading">

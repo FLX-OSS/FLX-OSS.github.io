@@ -1,6 +1,7 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BenchmarkChart from '../../components/BenchmarkChart.astro';
 import { publishedPosts } from '../../lib/blog.mjs';
 export async function getStaticPaths() {
   return publishedPosts(await getCollection('blog')).map(post => ({ params: {slug: post.id}, props: {post} }));
@@ -11,6 +12,11 @@ const { Content, headings } = await render(post);
 ---
 <StarlightPage headings={headings} frontmatter={{ title: post.data.title, description: post.data.description, editUrl: false, lastUpdated: false, prev: false, next: false }} hasSidebar={false}>
   <p class="post-meta">{post.data.author} · <time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</time></p>
+  {post.id === 'introducing-fluxserve' && <div class="post-benchmark"><BenchmarkChart /></div>}
   <Content />
   <p><a href="/blog/">← All posts</a></p>
 </StarlightPage>
+
+<style>
+  .post-benchmark { margin: 2rem 0 2.5rem; }
+</style>

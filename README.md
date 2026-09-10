@@ -58,6 +58,8 @@ The importer rewrites links between public docs, copies referenced image/PDF ass
 
 The disposable source cache is under `.cache/fluxserve/main`. The importer only resets this cache; it never resets the local FluxServe checkout.
 
+The three LLaDA serving guides are combined during import into `src/content/docs/docs/serving/model-recipes.md`, published at `/docs/serving/model-recipes/`. Each model has its own section; links to the original guides are rewritten to the corresponding sections. Edit the upstream recipe files to update their contents.
+
 ## Writing a blog post
 
 Create `src/content/blog/your-post.md`. The filename becomes `/blog/your-post/`. Use lowercase, hyphenated filenames.

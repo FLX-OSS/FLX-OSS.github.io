@@ -2,11 +2,15 @@
 import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
 import PageActions from './PageActions.astro';
 const { hasSidebar, entry } = Astro.locals.starlightRoute;
+const isBlogPost = Astro.url.pathname.startsWith('/blog/') && Astro.url.pathname !== '/blog/';
 ---
 {Astro.url.pathname !== '/' && (
-  hasSidebar ? <div class="docs-title-row"><DefaultPageTitle /><PageActions id={entry.id} /></div> : <DefaultPageTitle />
+  hasSidebar
+    ? <div class="docs-title-row"><DefaultPageTitle /><PageActions id={entry.id} /></div>
+    : <div class:list={{ 'blog-post-title': isBlogPost }}><DefaultPageTitle /></div>
 )}
 <style>
   .docs-title-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
   .docs-title-row :global(h1) { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+  .blog-post-title :global(h1) { font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.15; }
 </style>

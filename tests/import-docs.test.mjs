@@ -4,7 +4,20 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { importDocs, validateSource, fetchMain } from '../scripts/import-docs.mjs';
+import { importDocs, validateSource, fetchMain, consolidateModelRecipes } from '../scripts/import-docs.mjs';
+
+test('combines recipes and rewrites links to duplicate heading anchors', () => {
+  const pages = ['llada2-mini', 'llada2-flash', 'llada2.1'].map(slug => ({
+    file: `docs/serving/${slug}.md`,
+    content: '---\ntitle: Recipe\n---\n\n## Launch\n\n```bash\nserve model\n```\n',
+  }));
+  pages.push({file: 'docs/index.md', content: '---\ntitle: Docs\n---\n\n[Flash](/docs/serving/llada2-flash/#launch)\n'});
+  consolidateModelRecipes(pages);
+  assert.equal(pages.length, 2);
+  assert.match(pages[0].content, /model-recipes\/#launch-1/);
+  assert.equal(pages[1].file, 'docs/serving/model-recipes.md');
+  assert.equal(pages[1].content.match(/serve model/g).length, 3);
+});
 
 async function fixture(t, markdown = '# Intro\n\n[Other](other.md#details)\n\n![Plot](../assets/plot.png)\n\n[Code](../runtime.js)\n') {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'flux-docs-'));
