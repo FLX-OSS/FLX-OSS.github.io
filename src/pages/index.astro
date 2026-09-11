@@ -7,13 +7,14 @@ const install = 'docker pull flxoss/fluxserve:v0.1-cu130-fa4';
   <div class="landing not-content">
     <section class="hero-section" aria-labelledby="_top">
       <div class="hero-copy">
-        <h1 id="_top" tabindex="-1"><span>FluxServe</span><br class="desktop-break" /><span class="hero-tagline">Flexible Diffusion <br class="desktop-break" /> LLM Inference.</span></h1>
-        <p class="hero-description">A lightweight serving engine for diffusion language models. From your first request to multi-GPU inference.</p>
+        <h1 id="_top" tabindex="-1"><span>FluxServe </span><br /><span class="hero-tagline">Flexible and High-Performance <br class="desktop-break" /> Diffusion LLM Inference.</span></h1>
         <div class="hero-actions">
-          <a class="button primary" href="/docs/guides/quickstart/">Get started <span aria-hidden="true">↗</span></a>
-          <a class="button secondary" href="https://github.com/FLX-OSS/FluxServe">View on GitHub <span aria-hidden="true">→</span></a>
+          <a class="button primary" href="/docs/getting_started/">Get started <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="/docs/getting_started/">Model Recipes <span aria-hidden="true"></span></a>
+          <a class="button secondary" href="/docs/getting_started/">Serving Parameters <span aria-hidden="true"></span></a>
+
         </div>
-      </div>
+      </div> 
     </section>
     <section class="capabilities" aria-labelledby="built-for-blocks">
       <div class="section-heading"><p class="eyebrow">INSIDE FLUXSERVE</p><h2 id="built-for-blocks">Built for the way diffusion generates.</h2><p>Attention, scheduling, and execution. Designed around the block.</p></div>
@@ -22,10 +23,6 @@ const install = 'docker pull flxoss/fluxserve:v0.1-cu130-fa4';
         <article><span class="feature-index">02 / SCHEDULING</span><div class="feature-symbol scheduler-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Keep requests moving.</h3><p>A C++ control plane and Python execution plane coordinate requests with fine-grained, block-level scheduling.</p></article>
         <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p></article>
       </div>
-    </section>
-    <section class="start-strip" aria-labelledby="start-heading">
-      <div><p class="eyebrow">FROM SOURCE TO SERVING</p><h2 id="start-heading">Your next step starts here.</h2></div>
-      <div class="start-links"><a href="/docs/guides/quickstart/"><span>01</span> Send your first request <b aria-hidden="true">↗</b></a><a href="/docs/#deployment-guides"><span>02</span> Find a deployment guide <b aria-hidden="true">↗</b></a><a href="/docs/guides/benchmark/"><span>03</span> Benchmark your workload <b aria-hidden="true">↗</b></a></div>
     </section>
   </div>
 </StarlightPage>

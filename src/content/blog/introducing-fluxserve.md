@@ -26,4 +26,4 @@ FluxServe uses block-level scheduling to keep requests moving efficiently while 
 
 We plan to use this blog for engineering notes, release updates, benchmarks, and deeper explanations of the ideas behind FluxServe.
 
-For a closer look at the system today, read the [architecture overview](/docs/architecture/).
+For a closer look at the system today, read the [getting started guide](/docs/getting_started/).

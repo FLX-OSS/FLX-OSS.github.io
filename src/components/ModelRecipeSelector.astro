@@ -1,0 +1,129 @@
+---
+const initialCommand = [
+  'fluxserve serve \\',
+  '  --model inclusionAI/LLaDA2.0-mini \\',
+  '  --tp-size 1 \\',
+  '  --dp-size 1 \\',
+  '  --ep-size 1 \\',
+  '  --attention-backend flashinfer',
+].join('\n');
+---
+<model-recipe-selector>
+  <div class="command-box">
+    <div class="command-header"><button type="button" data-copy aria-label="Copy command" title="Copy command"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" /><path d="M16 8V3H3v13h5" /></svg></button></div>
+    <p class="hardware-verification" data-verification hidden aria-live="polite"><span class="verified-dot" aria-hidden="true"></span><span data-verification-label></span></p>
+    <pre><code data-command>{initialCommand}</code></pre>
+  </div>
+  <div class="recipe-controls">
+    <fieldset data-setting="model"><legend>Model</legend><div class="option-buttons"><button type="button" value="LLaDA2.0-mini" aria-pressed="true">LLaDA2.0 Mini</button><button type="button" value="LLaDA2.0-flash" aria-pressed="false">LLaDA2.0 Flash</button><button type="button" value="LLaDA2.1-mini" aria-pressed="false">LLaDA2.1 Mini</button><button type="button" value="LLaDA2.1-flash" aria-pressed="false">LLaDA2.1 Flash</button><button type="button" value="diffusion-gemma" aria-pressed="false">Diffusion-Gemma</button></div></fieldset>
+    <fieldset data-setting="hardware"><legend>Hardware</legend><div class="option-buttons"><button type="button" value="H100" aria-pressed="true">H100</button><button type="button" value="GH200" aria-pressed="false" aria-label="GH200, verified hardware"><span class="verified-dot" aria-hidden="true"></span> GH200</button><button type="button" value="B200" aria-pressed="false" aria-label="B200, verified hardware"><span class="verified-dot" aria-hidden="true"></span> B200</button></div></fieldset>
+    <fieldset data-setting="variant"><legend>Variant</legend><div class="option-buttons"><button type="button" value="BF16" aria-pressed="true">BF16 33 GB</button><button type="button" value="FP8" aria-pressed="false" hidden>FP8</button><button type="button" value="NVFP4" aria-pressed="false" hidden>NVFP4</button></div><p class="variant-detail" data-gemma-bf16 hidden>Full BF16 — single 80 GB NVIDIA GPU (H100/H200). Requires <code>--max-num-seqs 4</code> to avoid OOM from diffusion state buffers. <a class="huggingface-link" href="https://huggingface.co/google/diffusiongemma-26B-A4B-it" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7.5 14.5c1.2 1.5 2.7 2.3 4.5 2.3s3.3-.8 4.5-2.3M8.3 9.5h.01M15.7 9.5h.01" stroke-linecap="round"/><path d="M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9Z"/></svg><span>google/diffusiongemma-26B-A4B-it</span></a></p></fieldset>
+    <fieldset data-setting="backend"><legend>Attention Backend</legend><div class="option-buttons"><button type="button" value="flashinfer" aria-pressed="true">FlashInfer</button><button type="button" value="fa4" aria-pressed="false">FA4</button></div></fieldset>
+    <fieldset data-setting="parallel"><legend>Parallelism Settings</legend><div class="option-buttons"><button type="button" value="1" aria-pressed="true">TP=EP=1</button><button type="button" value="4" aria-pressed="false">TP=EP=4</button></div></fieldset>
+  </div>
+  <p data-note aria-live="polite">Hardware selects the target label; FluxServe detects the installed GPU. Adjust the checkpoint in the command as needed.</p>
+  <p role="status" data-status></p>
+</model-recipe-selector>
+<script>
+  class ModelRecipeSelector extends HTMLElement {
+    connectedCallback() {
+      const selected: Record<string, string> = { model: 'LLaDA2.0-mini', variant: 'BF16', parallel: '1', backend: 'flashinfer', hardware: 'H100' };
+      const code = this.querySelector<HTMLElement>('[data-command]')!;
+      const copy = this.querySelector<HTMLButtonElement>('[data-copy]')!;
+      const note = this.querySelector<HTMLElement>('[data-note]')!;
+      const status = this.querySelector<HTMLElement>('[data-status]')!;
+      const template = code.textContent!;
+      const update = () => {
+        const mini = ['LLaDA2.0-mini', 'LLaDA2.1-mini'].includes(selected.model);
+        if (mini) selected.variant = 'BF16';
+        if (selected.model.endsWith('-flash')) selected.parallel = '4';
+        this.querySelectorAll<HTMLButtonElement>('[data-setting="variant"] button').forEach(button => {
+          button.hidden = mini && button.value !== 'BF16';
+          button.setAttribute('aria-pressed', String(button.value === selected.variant));
+        });
+        this.querySelectorAll<HTMLButtonElement>('[data-setting="parallel"] button').forEach(button => {
+          button.hidden = selected.model.endsWith('-flash') && button.value === '1';
+          button.setAttribute('aria-pressed', String(button.value === selected.parallel));
+        });
+        const gemmaLabels: Record<string, string> = { BF16: 'BF16 52 GB', FP8: 'FP8 27 GB', NVFP4: 'NVFP4 19 GB' };
+        this.querySelectorAll<HTMLButtonElement>('[data-setting="variant"] button').forEach(button => {
+          button.textContent = selected.model === 'diffusion-gemma'
+            ? gemmaLabels[button.value]
+            : button.value === 'BF16' && selected.model.endsWith('-mini') ? 'BF16 33 GB'
+            : button.value === 'BF16' && selected.model.endsWith('-flash') ? 'BF16 206 GB'
+            : button.value;
+        });
+        this.querySelector<HTMLElement>('[data-gemma-bf16]')!.hidden = !(selected.model === 'diffusion-gemma' && selected.variant === 'BF16');
+        const reasons = [];
+        if (selected.variant !== 'BF16') reasons.push(`${selected.variant} quantized checkpoints are not supported by the current FluxServe CLI.`);
+        if (selected.backend === 'fa4') reasons.push('FA4 serving is not available in the current FluxServe CLI.');
+        const unsupported = reasons.length > 0;
+        const verification = this.querySelector<HTMLElement>('[data-verification]')!;
+        verification.hidden = unsupported || !['GH200', 'B200'].includes(selected.hardware);
+        this.querySelector('[data-verification-label]')!.textContent = 'Verified on NVIDIA ' + selected.hardware;
+        copy.disabled = unsupported;
+        code.textContent = unsupported
+          ? reasons.map(reason => '# ' + reason).join('\n')
+          : template
+              .replace('inclusionAI/LLaDA2.0-mini', selected.model === 'diffusion-gemma' ? 'google/diffusiongemma-26B-A4B-it' : 'inclusionAI/' + selected.model)
+              .replace('--tp-size 1', '--tp-size ' + selected.parallel)
+              .replace('--ep-size 1', '--ep-size ' + selected.parallel)
+              .replace('--use-decode-cuda-graph', selected.model.startsWith('LLaDA2.1-')
+                ? '--parallel-decoding joint_threshold \\\n  --threshold 0.7 \\\n  --editing-threshold 0.5 \\\n  --max-post-steps 16'
+                : selected.model === 'diffusion-gemma' ? '--scheduler-policy default \\\n  --use-decode-cuda-graph' : '--use-decode-cuda-graph');
+        note.textContent = unsupported
+          ? 'Select a LLaDA model with BF16 and FlashInfer for a runnable command.'
+          : selected.model === 'diffusion-gemma'
+            ? 'This recipe uses --scheduler-policy default as requested; it requires a FluxServe version accepting that policy (the local CLI currently lists paged and dynamic).'
+            : 'Hardware selects the target label; FluxServe detects the installed GPU. Adjust the checkpoint in the command as needed.';
+        status.textContent = '';
+      };
+      this.querySelectorAll<HTMLFieldSetElement>('[data-setting]').forEach(group => {
+        const buttons = group.querySelectorAll<HTMLButtonElement>('button');
+        buttons.forEach(button => button.addEventListener('click', () => {
+          selected[group.dataset.setting!] = button.value;
+          if (group.dataset.setting === 'model') {
+            selected.parallel = button.value.endsWith('-flash') ? '4' : '1';
+            this.querySelectorAll<HTMLButtonElement>('[data-setting="parallel"] button').forEach(option => option.setAttribute('aria-pressed', String(option.value === selected.parallel)));
+          }
+          buttons.forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+          update();
+        }));
+      });
+      copy.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(code.textContent!); status.textContent = 'Command copied.'; }
+        catch { status.textContent = 'Could not copy automatically. Select and copy the command above.'; }
+      });
+      update();
+    }
+  }
+  if (!customElements.get('model-recipe-selector')) customElements.define('model-recipe-selector', ModelRecipeSelector);
+</script>
+<style>
+  model-recipe-selector { display: block; margin-top: 1.5rem; }
+  .command-header { position: absolute; top: .6rem; right: .6rem; }
+  [data-copy] { display: grid; place-items: center; width: 36px; padding: 0; }
+  .command-box { position: relative; margin-top: 1rem; padding: .85rem 3.5rem .85rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  pre { margin: 0; padding: 0; overflow-x: auto; font-size: .85rem; line-height: 1.7; }
+  code { font-family: var(--sl-font-mono); }
+  .recipe-controls { display: grid; gap: 0; margin-top: .75rem; }
+  fieldset { min-width: 0; margin: 0; padding: .5rem 0 .65rem; border: 0; border-bottom: 1px solid var(--line); }
+  legend { padding: 0; font-size: .85rem; font-weight: 600; color: var(--sl-color-white); }
+  .option-buttons { display: flex; flex-wrap: wrap; gap: .5rem; }
+  button { padding: .45rem .85rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--sl-color-white); font: 500 .8rem var(--sl-font); cursor: pointer; min-height: 36px; }
+  button[aria-pressed='true'] { border-color: var(--brand); background: var(--sl-color-accent-low); color: var(--sl-color-accent-high); box-shadow: inset 0 0 0 1px var(--brand); }
+  button:hover:not(:disabled) { border-color: var(--brand); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  p { font-size: .8rem; color: var(--muted); margin-block: .75rem; }
+  .option-buttons button { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; }
+  .option-buttons button[hidden] { display: none; }
+  .variant-detail { max-width: 42rem; margin: .8rem 0 0; line-height: 1.6; }
+  .huggingface-link { display: flex; align-items: center; gap: .45rem; width: fit-content; margin-top: .65rem; color: var(--muted); font-weight: 400; text-decoration: none; }
+  .huggingface-link:hover { color: var(--brand); }
+  .verified-dot { display: inline-block; width: .35rem; height: .35rem; border-radius: 50%; background: #15803d; flex-shrink: 0; }
+  .hardware-verification { margin: 0 0 .75rem; color: #15803d; font-weight: 600; }
+  .hardware-verification:not([hidden]) { display: flex; align-items: center; gap: .5rem; }
+  :global([data-theme='dark']) .hardware-verification { color: #4ade80; }
+  :global([data-theme='dark']) .verified-dot { background: #4ade80; }
+  @media(max-width: 30rem) { .recipe-controls { gap: 0; } }
+</style>

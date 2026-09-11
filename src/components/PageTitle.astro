@@ -1,14 +1,15 @@
 ---
 import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
-import PageActions from './PageActions.astro';
-const { hasSidebar, entry } = Astro.locals.starlightRoute;
+import ModelRecipeSelector from './ModelRecipeSelector.astro';
+const { hasSidebar } = Astro.locals.starlightRoute;
 const isBlogPost = Astro.url.pathname.startsWith('/blog/') && Astro.url.pathname !== '/blog/';
 ---
 {Astro.url.pathname !== '/' && (
   hasSidebar
-    ? <div class="docs-title-row"><DefaultPageTitle /><PageActions id={entry.id} /></div>
+    ? <div class="docs-title-row"><DefaultPageTitle /></div>
     : <div class:list={{ 'blog-post-title': isBlogPost }}><DefaultPageTitle /></div>
 )}
+{Astro.url.pathname === '/docs/model-recipes/' && <ModelRecipeSelector />}
 <style>
   .docs-title-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
   .docs-title-row :global(h1) { min-width: 0; margin: 0; overflow-wrap: anywhere; }
