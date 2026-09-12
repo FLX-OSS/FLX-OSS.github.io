@@ -14,7 +14,7 @@ export default defineConfig({
   integrations: [starlight({
     title: 'FluxServe',
     description: 'A serving engine for diffusion language models.',
-    favicon: '/fluxserve-icon.png',
+    favicon: '/new_logo.png',
     customCss: ['./src/styles/site.css', './src/styles/controls.css'],
     credits: false,
     disable404Route: true,
@@ -27,6 +27,7 @@ export default defineConfig({
       { label: 'Getting Started', slug: 'docs/getting_started' },
       { label: 'Configuration', slug: 'docs/configuration' },
       { label: 'Model Recipes', slug: 'docs/model-recipes' },
+      { label: 'Benchmark Guide', slug: 'docs/benchmark-guide' },
     ],
   })],
 });

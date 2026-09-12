@@ -1,88 +1,103 @@
 ---
-// Approximate points read from the original published figure. Keep its axes and series.
-const rates = [2, 4, 8, 12, 16];
-const charts = [
-  { model: 'Mini', dataset: 'BigCodeBench', config: 'TP=1 · EP=1', min: 690, max: 1340, ticks: [700, 800, 900, 1000, 1100, 1200, 1300], flux: [766, 1252, 1255, 1263, 1264], sglang: [830, 998, 1003, 997, 1005] },
-  { model: 'Flash', dataset: 'BigCodeBench', config: 'TP=4 · EP=4', min: 604, max: 746, ticks: [620, 640, 660, 680, 700, 720, 740], flux: [709, 718, 720, 714, 720], sglang: [629, 632, 629, 633, 632] },
-  { model: 'Mini', dataset: 'GSM8K', config: 'TP=1 · EP=1', min: 640, max: 935, ticks: [650, 700, 750, 800, 850, 900], flux: [675, 893, 897, 897, 903], sglang: [716, 836, 859, 860, 862] },
-  { model: 'Flash', dataset: 'GSM8K', config: 'TP=4 · EP=4', min: 482, max: 548, ticks: [490, 500, 510, 520, 530, 540], flux: [513, 508, 520, 517, 523], sglang: [511, 509, 514, 514, 509] },
-];
-const x = (rate: number) => 60 + (rate - 1) / 16 * 420;
+import SpeedBenchmarkChart from './SpeedBenchmarkChart.astro';
+
+// Illustrative placeholder data for the blog design. Replace with measured results.
+const series = [
+  { id: 'flux', name: 'FluxServe', values: [[40, 1510], [80, 1320], [120, 1110], [180, 850], [260, 610], [340, 430]] },
+  { id: 'baseline', name: 'SGLang', values: [[40, 1320], [80, 1120], [120, 920], [180, 690], [260, 470], [340, 310]] },
+] as const;
+const xTicks = [0, 100, 200, 300, 400];
+const yTicks = [0, 400, 800, 1200, 1600];
+const x = (value: number) => 88 + value / 400 * 850;
+const y = (value: number) => 370 - value / 1600 * 320;
 ---
-<section class="benchmark-tabs" aria-label="FluxServe benchmarks">
-  <div class="tab-list" role="tablist" aria-label="Benchmark">
-    {charts.map((chart, i) => <button type="button" role="tab" id={`benchmark-tab-${i}`} aria-controls={`benchmark-panel-${i}`} aria-selected={i === 0} tabindex={i === 0 ? 0 : -1}>
-      <span>{chart.model}</span><small>{chart.dataset}</small>
-    </button>)}
+<figure class="benchmark" aria-labelledby="plot-title" aria-describedby="benchmark-caption">
+  <!-- <header class="benchmark-header">
+    <div>
+      <p class="eyebrow">SCALING PERFORMANCE</p>
+      <h2 id="benchmark-title">Higher per-user demand trades off with output throughput</h2>
+      <p>Illustrative performance profile for a single model. Lower input rate sustains higher output throughput.</p>
+    </div>
+  </header> -->
+
+  <div class="legend" aria-label="Series legend">
+    {series.map(item => <span><i class={item.id}></i>{item.name}</span>)}
   </div>
-  {charts.map((chart, i) => {
-    const y = (value: number) => 290 - (value - chart.min) / (chart.max - chart.min) * 255;
-    return <div role="tabpanel" id={`benchmark-panel-${i}`} aria-labelledby={`benchmark-tab-${i}`} hidden={i !== 0} tabindex="0">
-      <div class="legend"><span><i class="flux"></i>FluxServe</span><span><i class="sglang"></i>SGLang</span></div>
-      <svg viewBox="-25 0 535 345" role="img" aria-labelledby={`chart-title-${i} chart-desc-${i}`}>
-        <title id={`chart-title-${i}`}>{chart.model} · {chart.dataset}</title>
-        <desc id={`chart-desc-${i}`}>Decode throughput versus request rate, reconstructed from approximate points in the published figure. The vertical axis starts at {chart.min}, matching the original chart's range.</desc>
-        <text class="axis-label" transform="translate(-10 163) rotate(-90)" text-anchor="middle">Decode throughput (tokens/s)</text>
-        {chart.ticks.map(tick => <g><line class="grid" x1="60" x2="480" y1={y(tick)} y2={y(tick)} /><text x="48" y={y(tick) + 4} text-anchor="end">{tick}</text></g>)}
-        {[4, 8, 12, 16].map(rate => <g><line class="grid" x1={x(rate)} x2={x(rate)} y1="35" y2="290" /><text x={x(rate)} y="313" text-anchor="middle">{rate}</text></g>)}
-        <text x="270" y="339" text-anchor="middle">Request rate (req/s)</text>
-        <defs><clipPath id={`line-reveal-${i}`}><rect class="reveal" x="60" y="30" width="420" height="265" /></clipPath></defs>
-        <g clip-path={`url(#line-reveal-${i})`}>
-          {(['flux', 'sglang'] as const).map(engine => <g class={engine}>
-            <polyline points={chart[engine].map((value, index) => `${x(rates[index])},${y(value)}`).join(' ')} fill="none" stroke-width="3" stroke-dasharray={engine === 'sglang' ? '8 6' : undefined} />
-            {chart[engine].map((value, index) => <circle cx={x(rates[index])} cy={y(value)} r="3.5" />)}
-          </g>)}
-        </g>
-      </svg>
-      <p class="chart-note">LLaDA2.0-{chart.model.toLowerCase()} · {chart.config}</p>
-    </div>;
-  })}
-  <footer><a href="https://github.com/FLX-OSS/FluxServe/blob/main/docs/guides/benchmark.md#published-performance-figure">Benchmark details ↗</a></footer>
-</section>
-<script>
-  document.querySelectorAll<HTMLElement>('.benchmark-tabs').forEach(card => {
-    const tabs = [...card.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
-    const panels = [...card.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    function select(index: number) {
-      tabs.forEach((tab, i) => { tab.setAttribute('aria-selected', String(i === index)); tab.tabIndex = i === index ? 0 : -1; panels[i].hidden = i !== index; });
-      tabs[index].focus();
-    }
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => select(i));
-      tab.addEventListener('keydown', event => {
-        const next = event.key === 'ArrowRight' ? (i + 1) % tabs.length : event.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
-        if (next !== null) { event.preventDefault(); select(next); }
-      });
-    });
-  });
-</script>
+
+  <div class="chart-scroller" tabindex="0" aria-label="Scrollable scaling performance chart">
+    <svg viewBox="0 0 1040 440" role="img" aria-labelledby="plot-title plot-description">
+      <title id="plot-title">Single-model scaling performance</title>
+      <desc id="plot-description">Placeholder data comparing FluxServe with a baseline. Both lines slope downward as user input tokens per second increase, while FluxServe maintains higher output tokens per second.</desc>
+
+      <g class="chart-frame">
+        {yTicks.map(tick => <g>
+          <line x1="88" x2="938" y1={y(tick)} y2={y(tick)} />
+          <text x="70" y={y(tick) + 5} text-anchor="end">{tick.toLocaleString('en-US')}</text>
+        </g>)}
+        {xTicks.map(tick => <g>
+          <line x1={x(tick)} x2={x(tick)} y1="50" y2="370" />
+          <text x={x(tick)} y="397" text-anchor="middle">{tick}</text>
+        </g>)}
+      </g>
+
+      <text class="axis-label" x="513" y="430" text-anchor="middle">User/Input/Tok/S</text>
+      <text class="axis-label" transform="translate(22 210) rotate(-90)" text-anchor="middle">Output/Tok/S</text>
+
+      <defs>
+        <clipPath id="plot-reveal"><rect class="reveal" x="82" y="44" width="864" height="334" /></clipPath>
+      </defs>
+      <g clip-path="url(#plot-reveal)">
+        {series.map(item => <g class={`series ${item.id}`}>
+          <polyline points={item.values.map(([input, output]) => `${x(input)},${y(output)}`).join(' ')} />
+          {item.values.map(([input, output], index) => <circle style={`--point: ${index}`} cx={x(input)} cy={y(output)} r="5" />)}
+        </g>)}
+      </g>
+    </svg>
+  </div>
+
+  <figcaption id="benchmark-caption">
+    <span><b>Design preview:</b> values are placeholders intended to demonstrate the visualization and animation.</span>
+    <a href="/docs/benchmark-guide/">Benchmark Guide ↗</a>
+  </figcaption>
+</figure>
+
+<SpeedBenchmarkChart />
+
 <style>
-  .benchmark-tabs { min-width: 0; border: 1px solid var(--line); background: var(--sl-color-bg); }
-  .tab-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
-  button { font: inherit; cursor: pointer; color: var(--muted); background: transparent; border: 0; }
-  [role='tab'] { padding: 1rem .2rem; border-right: 1px solid var(--line); }
-  [role='tab']:last-child { border-right: 0; }
-  [role='tab'][aria-selected='true'] { color: var(--sl-color-white); background: var(--surface); box-shadow: inset 0 -2px var(--brand); }
-  [role='tab'] span { display: block; font-size: 1.1rem; font-weight: 650; }
-  [role='tab'] small { display: block; font-size: .8rem; margin-top: .2rem; }
-  [role='tabpanel'] { padding: 1.6rem 1.3rem .8rem; }
-  .chart-note { margin: .65rem 0 0; color: var(--muted); font-size: .75rem; font-weight: 400; }
-  .legend { display: flex; gap: 1.2rem; margin-top: 0; font-size: .7rem; color: var(--muted); }
+  .benchmark { min-width: 0; margin: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--sl-color-bg); overflow: hidden; }
+  .benchmark-header { padding: 1.5rem 1.6rem 1.35rem; border-bottom: 1px solid var(--line); }
+  .eyebrow { margin: 0 0 .45rem; color: var(--brand); font: 650 .68rem var(--sl-font-mono); letter-spacing: .1em; }
+  h2 { margin: 0; max-width: 38rem; color: var(--sl-color-white); font-size: clamp(1.25rem, 2.2vw, 1.65rem); line-height: 1.25; letter-spacing: -.025em; }
+  .benchmark-header p:last-child { margin: .5rem 0 0; color: var(--muted); font-size: .82rem; }
+  .legend { display: flex; justify-content: center; gap: 1.5rem; padding: .65rem 1.6rem 0; color: var(--muted); font-size: .9rem; }
   .legend span { display: flex; align-items: center; gap: .4rem; }
-  .legend i { width: 20px; height: 0; border-top: 2px solid #c72635; }
-  .legend .sglang { border-top: 2px dashed #f58a16; }
-  svg { display: block; width: 100%; height: auto; overflow: visible; }
-  svg text { fill: var(--muted); font: 13px var(--sl-font-mono); }
-  .grid { stroke: var(--line); stroke-dasharray: 3 3; }
-  svg .flux { stroke: #c72635; fill: #c72635; }
-  svg .sglang { stroke: #f58a16; fill: #f58a16; }
-  :global([data-theme='dark']) svg .flux { stroke: #fa6173; fill: #fa6173; }
-  :global([data-theme='dark']) .legend .flux { border-color: #fa6173; }
-  .reveal { transform-box: fill-box; transform-origin: left center; animation: draw 1.6s ease-in-out both; }
-  footer { margin: 0 1.3rem; padding: .85rem 0; border-top: 1px solid var(--line); text-align: right; }
-  footer a { color: var(--muted); font-size: .7rem; }
-  button:focus-visible, [role='tabpanel']:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
-  @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  @media(prefers-reduced-motion: reduce) { .reveal { animation: none; } }
-  @media(max-width: 400px) { [role='tab'] span { font-size: 1rem; } [role='tab'] small { font-size: .7rem; } [role='tabpanel'] { padding: 1.2rem .65rem .5rem; } }
+  .legend i { display: inline-block; width: 24px; border-top: 3px solid var(--brand); }
+  .legend .baseline { border-color: #e9a136; border-top-style: dashed; }
+  .chart-scroller { overflow-x: auto; overscroll-behavior-inline: contain; padding: 0 .85rem; }
+  .chart-scroller:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+  svg { display: block; width: 100%; min-width: 700px; height: auto; }
+  svg text { fill: var(--muted); font: 16px var(--sl-font-mono); }
+  .chart-frame { animation: frame-in .45s ease-out both; }
+  .chart-frame line { stroke: var(--line); stroke-width: 1; }
+  .axis-label { fill: var(--sl-color-gray-2); font-size: 16px; font-weight: 600; }
+  .series { stroke: var(--brand); fill: var(--brand); }
+  .series.baseline { stroke: #f0a43a; fill: #cf780f; }
+  .series polyline { fill: none; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+  .series.baseline polyline { stroke-dasharray: 10 8; stroke-width: 2.75; }
+  .series circle { stroke: var(--sl-color-bg); stroke-width: 2; opacity: 0; animation: point-in .3s ease-out calc(.55s + var(--point) * .12s) forwards; }
+  .reveal { transform-box: fill-box; transform-origin: left center; animation: reveal 1.25s cubic-bezier(.22,.75,.25,1) .25s both; }
+  figcaption { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: .7rem 1.25rem; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .68rem; line-height: 1.45; }
+  figcaption b { color: var(--sl-color-white); }
+  figcaption a { flex-shrink: 0; color: var(--brand); }
+  :global([data-theme='dark']) .series.flux { stroke: #ff6d91; fill: #ff6d91; }
+  @keyframes frame-in { from { opacity: 0; } }
+  @keyframes reveal { from { transform: scaleX(0); } }
+  @keyframes point-in { from { opacity: 0; transform: scale(.5); transform-origin: center; } to { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    .chart-frame, .reveal, .series circle { animation: none; opacity: 1; transform: none; }
+  }
+  @media (max-width: 42rem) {
+    figcaption { align-items: start; flex-direction: column; gap: 1rem; }
+  }
+  @media (max-width: 25rem) { .benchmark-header, figcaption { padding-inline: .85rem; } }
 </style>

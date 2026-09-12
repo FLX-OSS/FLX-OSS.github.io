@@ -1,27 +1,105 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import { Code } from '@astrojs/starlight/components';
-const install = 'docker pull flxoss/fluxserve:v0.1-cu130-fa4';
+
+const frontmatter = {
+  title: 'FluxServe',
+  head: [{ tag: 'title' as const, content: 'FluxServe' }],
+  description:
+    'FluxServe is a lightweight serving engine for diffusion language models. Get started with block-level scheduling, efficient attention, and multi-GPU execution.',
+  template: 'splash' as const,
+  editUrl: false as const,
+  lastUpdated: false as const,
+};
 ---
-<StarlightPage frontmatter={{ title: 'FluxServe', head: [{ tag: 'title', content: 'FluxServe' }], description: 'FluxServe is a lightweight serving engine for diffusion language models. Get started with block-level scheduling, efficient attention, and multi-GPU execution.', template: 'splash', editUrl: false, lastUpdated: false }}>
+
+<StarlightPage {frontmatter}>
   <div class="landing not-content">
     <section class="hero-section" aria-labelledby="_top">
       <div class="hero-copy">
-        <h1 id="_top" tabindex="-1"><span>FluxServe </span><br /><span class="hero-tagline">Flexible and High-Performance <br class="desktop-break" /> Diffusion LLM Inference.</span></h1>
-        <div class="hero-actions">
-          <a class="button primary" href="/docs/getting_started/">Get started <span aria-hidden="true">→</span></a>
-          <a class="button secondary" href="/docs/getting_started/">Model Recipes <span aria-hidden="true"></span></a>
-          <a class="button secondary" href="/docs/getting_started/">Serving Parameters <span aria-hidden="true"></span></a>
+        <h1 id="_top" tabindex="-1">
+          <span class="hero-brand">FluxServe</span>
+          <span class="hero-tagline">
+            Flexible and High-Performance
+            <br class="desktop-break" />
+            Diffusion LLM Inference.
+          </span>
+        </h1>
 
+        <p class="hero-description">
+        Open-source, high-throughput and cost-effectient dLLM serving engine for everyone. 
+        </p>
+
+        <div class="hero-actions">
+          <a class="button primary" href="/docs/getting_started/">
+            Get started <span aria-hidden="true">→</span>
+          </a>
+          <a
+            class="button secondary github-button"
+            href="https://github.com/FLX-OSS/FluxServe"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View FluxServe on GitHub (opens in a new tab)"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.55v-2.15c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.39.97.1-.75.4-1.27.74-1.56-2.57-.29-5.28-1.29-5.28-5.75 0-1.27.46-2.31 1.19-3.12-.12-.29-.52-1.48.11-3.08 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.12 0 4.47-2.71 5.46-5.3 5.75.42.36.79 1.06.79 2.14v3.17c0 .31.21.67.8.55A11.5 11.5 0 0 0 12 .7Z"></path>
+            </svg>
+            View on GitHub
+          </a>
         </div>
-      </div> 
+      </div>
     </section>
+
     <section class="capabilities" aria-labelledby="built-for-blocks">
-      <div class="section-heading"><p class="eyebrow">INSIDE FLUXSERVE</p><h2 id="built-for-blocks">Built for the way diffusion generates.</h2><p>Attention, scheduling, and execution. Designed around the block.</p></div>
+      <div class="section-heading">
+        <p class="eyebrow">INSIDE FLUXSERVE</p>
+        <h2 id="built-for-blocks">Built for the way diffusion generates</h2>
+      </div>
+
       <div class="capability-grid">
-        <article><span class="feature-index">01 / ATTENTION</span><div class="feature-symbol attention-symbol" aria-hidden="true">{Array.from({length:16},(_,i)=><i class={i % 4 <= Math.floor(i / 4) ? 'filled' : ''}></i>)}</div><h3>Every block counts.</h3><p>Block-causal attention for variable-length prefill and decoding, with native FlashInfer and FA4 support.</p></article>
-        <article><span class="feature-index">02 / SCHEDULING</span><div class="feature-symbol scheduler-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Keep requests moving.</h3><p>A C++ control plane and Python execution plane coordinate requests with fine-grained, block-level scheduling.</p></article>
-        <article><span class="feature-index">03 / EXECUTION</span><div class="feature-symbol gpu-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Room for larger models.</h3><p>Tensor, data, and expert parallelism bring diffusion inference to documented multi-GPU configurations.</p></article>
+        <article>
+          <span class="feature-index">01 / ATTENTION</span>
+          <div class="feature-symbol attention-symbol" aria-hidden="true">
+            {
+              Array.from({ length: 16 }, (_, index) => (
+                <i class={index % 4 <= Math.floor(index / 4) ? 'filled' : ''}></i>
+              ))
+            }
+          </div>
+          <h3>Built for Variable Lengths</h3>
+          <p>
+            Block-causal attention handles variable-length prefill and decoding efficiently, 
+            with native FlashInfer and FA4 support
+          </p>
+        </article>
+
+        <article>
+          <span class="feature-index">02 / SCHEDULING</span>
+          <div class="feature-symbol scheduler-symbol" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+          <h3>Keep the Pipeline Moving</h3>
+          <p>
+            Fine-grained, block-level scheduling keeps requests flowing 
+            across the C++ control plane and Python execution path
+          </p>
+        </article>
+
+        <article>
+          <span class="feature-index">03 / EXECUTION</span>
+          <div class="feature-symbol gpu-symbol" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+          <h3>Scale Beyond One GPU</h3>
+          <p>
+            Tensor, data, and expert parallelism extend diffusion inference across multi-GPU deployments
+          </p>
+        </article>
       </div>
     </section>
   </div>

@@ -18,6 +18,7 @@ FluxServe uses block-level scheduling to keep requests moving efficiently while 
 
 ### Performance Results
 
+<div data-benchmark-slot></div>
 
 ### Acknowledgements
 

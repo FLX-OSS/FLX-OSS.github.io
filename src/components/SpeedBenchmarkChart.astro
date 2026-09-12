@@ -1,0 +1,98 @@
+---
+interface Props { compact?: boolean; }
+const { compact = false } = Astro.props;
+
+// Illustrative placeholder data for the blog design. Replace with measured results.
+const results = [
+  { name: 'FluxServe', value: 1100, featured: true },
+  { name: 'SGLang', value: 610, featured: false },
+  { name: 'vLLM', value: 480, featured: false },
+];
+const maxValue = Math.max(...results.map(result => result.value));
+const barWidth = (value: number) => value / maxValue * 760;
+const verticalTicks = [0, 400, 800, 1200];
+const verticalY = (value: number) => 500 - value / 1200 * 360;
+const verticalX = (index: number) => 92 + index * 164;
+---
+<figure class:list={['speed-benchmark', { compact }]} aria-labelledby={compact ? 'speed-title-vertical' : 'speed-title'} aria-describedby="speed-caption">
+  <div class="chart-scroller" tabindex="0" aria-label="Scrollable speed benchmark chart">
+    {compact && <svg class="vertical-chart" viewBox="0 0 580 570" role="img" aria-labelledby="speed-title-vertical speed-description-vertical">
+      <title id="speed-title-vertical">Speed benchmark</title>
+      <desc id="speed-description-vertical">Placeholder output speed comparison. FluxServe reaches 1100 tokens per second, SGLang reaches 610, and vLLM reaches 480.</desc>
+      <g class="chart-heading">
+        <line x1="62" x2="62" y1="42" y2="74" />
+        <text class="heading" x="82" y="68">Speed Benchmark</text>
+        <text class="unit" x="520" y="68" text-anchor="end">Tokens/sec</text>
+      </g>
+      <g class="vertical-grid">
+        {verticalTicks.map(tick => <g>
+          <line x1="62" x2="520" y1={verticalY(tick)} y2={verticalY(tick)} />
+          <text x="50" y={verticalY(tick) + 5} text-anchor="end">{tick.toLocaleString('en-US')}</text>
+        </g>)}
+      </g>
+      {results.map((result, index) => {
+        const top = verticalY(result.value);
+        return <g class:list={['bar-row', { featured: result.featured }]} style={`--row: ${index}`}>
+          <rect class="bar" x={verticalX(index)} y={top} width="104" height={500 - top} />
+          <text class="value" x={verticalX(index) + 52} y={top - 14} text-anchor="middle">{result.value.toLocaleString('en-US')}</text>
+          <text class="name" x={verticalX(index) + 52} y="536" text-anchor="middle">{result.name}</text>
+        </g>;
+      })}
+    </svg>}
+    {!compact && <svg viewBox="0 0 1040 420" role="img" aria-labelledby="speed-title speed-description">
+      <title id="speed-title">Speed benchmark</title>
+      <desc id="speed-description">Placeholder output speed comparison. FluxServe reaches 1100 tokens per second, SGLang reaches 610, and vLLM reaches 480.</desc>
+
+      <g class="chart-heading">
+        <line x1="88" x2="88" y1="44" y2="76" />
+        <text class="heading" x="108" y="69">Speed Benchmark</text>
+        <text class="unit" x="948" y="69" text-anchor="end">Tokens/sec</text>
+      </g>
+
+      {results.map((result, index) => {
+        const top = 108 + index * 88;
+        return <g class:list={['bar-row', { featured: result.featured }]} style={`--row: ${index}`}>
+          <rect class="bar" x="88" y={top} width={barWidth(result.value)} height="62" />
+          <text class="name" x="108" y={top + 39}>{result.name}</text>
+          <text class="value" x="948" y={top + 39} text-anchor="end">{result.value.toLocaleString('en-US')}</text>
+        </g>;
+      })}
+    </svg>}
+  </div>
+  <figcaption id="speed-caption"><b>Design preview:</b> values are placeholders and do not represent measured performance.</figcaption>
+</figure>
+
+<style>
+  .speed-benchmark { min-width: 0; margin: 1.25rem 0 0; border: 1px solid var(--line); border-radius: 12px; background: var(--sl-color-bg); overflow: hidden; }
+  .speed-benchmark.compact { margin: 0; }
+  .speed-benchmark.compact svg { min-width: 0; }
+  .speed-benchmark.compact figcaption { padding: .4rem .75rem; font-size: .58rem; }
+  .chart-scroller { overflow-x: auto; overscroll-behavior-inline: contain; padding: .35rem .85rem 0; }
+  .chart-scroller:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+  svg { display: block; width: 100%; min-width: 700px; height: auto; }
+  svg text { fill: var(--muted); font-family: var(--sl-font-mono); }
+  .chart-heading { opacity: 0; animation: fade-in .4s ease-out forwards; }
+  .chart-heading line { stroke: var(--brand); stroke-width: 4; }
+  .heading { fill: var(--sl-color-white); font: 650 20px var(--sl-font); }
+  .unit { font: 16px var(--sl-font); }
+  .bar { fill: var(--surface); stroke: var(--sl-color-gray-4); stroke-width: 1.25; transform-box: fill-box; transform-origin: left center; animation: grow .8s cubic-bezier(.22,.75,.25,1) calc(.18s + var(--row) * .12s) both; }
+  .featured .bar { fill: color-mix(in srgb, var(--brand) 18%, var(--sl-color-bg)); stroke: var(--brand); }
+  .name { fill: var(--sl-color-white); font-size: 18px; font-weight: 650; opacity: 0; animation: fade-in .3s ease-out calc(.62s + var(--row) * .12s) forwards; }
+  .featured .name { fill: var(--brand); }
+  .value { fill: var(--sl-color-white); font-size: 19px; opacity: 0; animation: fade-in .3s ease-out calc(.68s + var(--row) * .12s) forwards; }
+  .vertical-grid line { stroke: var(--line); stroke-width: 1; }
+  .vertical-grid text { font-size: 11px; }
+  .vertical-chart .bar { transform-origin: center bottom; animation-name: grow-up; }
+  .vertical-chart .heading { font-size: 18px; }
+  .vertical-chart .unit { font-size: 14px; }
+  .vertical-chart .name { font-size: 14px; }
+  .vertical-chart .value { font-size: 15px; font-weight: 700; }
+  figcaption { padding: .7rem 1.25rem; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .68rem; line-height: 1.45; }
+  figcaption b { color: var(--sl-color-white); }
+  @keyframes grow { from { transform: scaleX(0); } }
+  @keyframes grow-up { from { transform: scaleY(0); } }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .chart-heading, .bar, .name, .value { animation: none; opacity: 1; transform: none; }
+  }
+</style>
