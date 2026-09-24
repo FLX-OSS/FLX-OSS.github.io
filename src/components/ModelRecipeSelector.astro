@@ -1,5 +1,5 @@
 ---
-import { defaults, groups, optionLabel, optionVisible, recipeView } from '../lib/model-recipes';
+import { defaults, groups, optionEnabled, optionLabel, optionVisible, recipeView } from '../lib/model-recipes';
 
 const initialView = recipeView(defaults);
 ---
@@ -36,6 +36,7 @@ const initialView = recipeView(defaults);
               aria-pressed={defaults[group.key] === option.value}
               aria-label={option.verified ? option.label + ', verified hardware' : undefined}
               hidden={!optionVisible(defaults, group.key, option.value)}
+              disabled={!optionEnabled(defaults, group.key, option.value)}
             >
               {option.verified && <span class="verified-dot" aria-hidden="true"></span>}
               <span data-option-label>{optionLabel(defaults, group.key, option)}</span>
@@ -66,7 +67,7 @@ const initialView = recipeView(defaults);
 
 <script>
   import {
-    defaults, groups, optionLabel, optionVisible, recipeView, selectOption,
+    defaults, groups, optionEnabled, optionLabel, optionVisible, recipeView, selectOption,
     type Setting,
   } from '../lib/model-recipes';
 
@@ -98,6 +99,7 @@ const initialView = recipeView(defaults);
         for (const option of group.options) {
           const button = fieldset.querySelector<HTMLButtonElement>('[value="' + option.value + '"]')!;
           button.hidden = !optionVisible(this.selected, group.key, option.value);
+          button.disabled = !optionEnabled(this.selected, group.key, option.value);
           button.setAttribute('aria-pressed', String(this.selected[group.key] === option.value));
           button.querySelector('[data-option-label]')!.textContent =
             optionLabel(this.selected, group.key, option);

@@ -19,7 +19,7 @@ const placeholderLink = (model: string, variant: string): VariantLink => ({
 
 export const models: Record<string, ModelRecipe> = {
   'LLaDA2.0-mini': {
-    label: 'LLaDA2.0 Mini',
+    label: 'LLaDA2.0-Mini',
     checkpoint: 'inclusionAI/LLaDA2.0-mini',
     variants: { BF16: 'BF16 33GB'},
     variantLinks: { BF16: 
@@ -31,7 +31,7 @@ export const models: Record<string, ModelRecipe> = {
     parallelism: ['1', '4'],
   },
   'LLaDA2.0-flash': {
-    label: 'LLaDA2.0 Flash',
+    label: 'LLaDA2.0-Flash',
     checkpoint: 'inclusionAI/LLaDA2.0-flash',
     variants: { BF16: 'BF16 206GB'},
     variantLinks: { BF16: 
@@ -43,7 +43,7 @@ export const models: Record<string, ModelRecipe> = {
     parallelism: ['4'],
   },
   'LLaDA2.1-mini': {
-    label: 'LLaDA2.1 Mini',
+    label: 'LLaDA2.1-Mini',
     checkpoint: 'inclusionAI/LLaDA2.1-mini',
     variants: { BF16: 'BF16 33 GB'},
     variantLinks: { BF16: 
@@ -55,7 +55,7 @@ export const models: Record<string, ModelRecipe> = {
     parallelism: ['1', '4'],
   },
   'LLaDA2.1-flash': {
-    label: 'LLaDA2.1 Flash',
+    label: 'LLaDA2.1-Flash',
     checkpoint: 'inclusionAI/LLaDA2.1-flash',
     variants: { BF16: 'BF16 206GB'},
     variantLinks: { BF16: 
@@ -118,8 +118,8 @@ export const groups: Group[] = [
     key: 'hardware',
     label: 'Hardware',
     options: [
-      { value: 'H100', label: 'H100' },
-      { value: 'H200', label: 'H200' },
+      { value: 'H100', label: 'H100', verified: true },
+      { value: 'H200', label: 'H200', verified: true },
       { value: 'GH200', label: 'GH200', verified: true },
       { value: 'B200', label: 'B200', verified: true },
     ],
@@ -153,9 +153,11 @@ export const defaults: Selection = {
 };
 
 export function selectOption(current: Selection, key: Setting, value: string): Selection {
+  if (!optionEnabled(current, key, value)) return current;
   const next = { ...current, [key]: value };
   const model = models[next.model];
-  if (!(next.variant in model.variants)) next.variant = 'BF16';
+  if (!(next.variant in model.variants) || !optionEnabled(next, 'variant', next.variant)) next.variant = 'BF16';
+  if (!optionEnabled(next, 'backend', next.backend)) next.backend = 'flashinfer';
   if (key === 'model' || !model.parallelism.includes(next.parallel)) next.parallel = model.parallelism[0];
   return next;
 }
@@ -167,20 +169,42 @@ export function optionVisible(selection: Selection, key: Setting, value: string)
   return true;
 }
 
+export function optionEnabled(selection: Selection, key: Setting, value: string): boolean {
+  if (key === 'variant') return value === 'BF16';
+  if (key === 'backend' && value === 'fa4') return selection.model.startsWith('LLaDA2.');
+  return true;
+}
+
 export function optionLabel(selection: Selection, key: Setting, option: Option): string {
   return key === 'variant' ? models[selection.model].variants[option.value] ?? option.label : option.label;
 }
 
 /** Keep command arguments explicit: no replacements against rendered HTML. */
 export function buildCommand(selection: Selection): string {
-  const args = [
+  const isLlada21 = selection.model.startsWith('LLaDA2.1-');
+  const isGemma = selection.model === 'diffusion-gemma';
+  const args: [string, string][] = [
     ['model', models[selection.model].checkpoint],
     ['tp-size', selection.parallel],
     ['dp-size', '1'],
     ['ep-size', selection.parallel],
+    ...(isLlada21 ? [
+      ['parallel-decoding', 'joint_threshold'],
+      ['threshold', '0.7'],
+      ['editing-threshold', '0.5'],
+      ['max-post-steps', '16'],
+    ] as [string, string][] : []),
+    ...(isGemma ? [
+      ['max-num-seqs', '4'],
+      ['max-model-len', '8192'],
+      ['block-length', '256'],
+      ['canvas-length', '256'],
+      ['page-size', '256'],
+    ] as [string, string][] : []),
     ['attention-backend', selection.backend],
+    ...(isGemma ? [['scheduler-policy', 'default']] as [string, string][] : []),
   ];
-  return ['fluxserve serve', ...args.map(([key, value]) => `  --${key} ${value}`)].join(' \\\n');
+  return ['fluxserve launch', ...args.map(([key, value]) => `  --${key} ${value}`)].join(' \\\n');
 }
 
 /** Derive display state in one place for both initial HTML and browser updates. */

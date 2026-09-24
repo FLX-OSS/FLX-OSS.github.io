@@ -2,6 +2,7 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BenchmarkChart from '../../components/BenchmarkChart.astro';
+import BlockDiffusionAnimation from '../../components/BlockDiffusionAnimation.astro';
 import { publishedPosts } from '../../lib/blog.mjs';
 export async function getStaticPaths() {
   return publishedPosts(await getCollection('blog')).map(post => ({ params: {slug: post.id}, props: {post} }));
@@ -13,9 +14,16 @@ const { Content, headings } = await render(post);
 <StarlightPage headings={headings} frontmatter={{ title: post.data.title, description: post.data.description, editUrl: false, lastUpdated: false, prev: false, next: false }} hasSidebar={false}>
   <p class="post-meta">{post.data.author} · <time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</time></p>
   <Content />
+  {post.id === 'introducing-fluxserve' && <div class="post-diffusion" data-block-diffusion-chart hidden><BlockDiffusionAnimation /></div>}
   {post.id === 'introducing-fluxserve' && <div class="post-benchmark" data-benchmark-chart hidden><BenchmarkChart /></div>}
   {post.id === 'introducing-fluxserve' && <script is:inline>
     (() => {
+      const diffusionSlot = document.querySelector('[data-block-diffusion-slot]');
+      const diffusionChart = document.querySelector('[data-block-diffusion-chart]');
+      if (diffusionSlot && diffusionChart) {
+        diffusionChart.hidden = false;
+        diffusionSlot.replaceWith(diffusionChart);
+      }
       const slot = document.querySelector('[data-benchmark-slot]');
       const chart = document.querySelector('[data-benchmark-chart]');
       if (slot && chart) {
@@ -28,5 +36,6 @@ const { Content, headings } = await render(post);
 </StarlightPage>
 
 <style>
+  .post-diffusion { margin: 1.25rem 0 2rem; }
   .post-benchmark { margin: 1.25rem 0 2.5rem; }
 </style>
