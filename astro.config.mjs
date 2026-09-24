@@ -5,11 +5,16 @@ export default defineConfig({
   site: 'https://flx-oss.github.io',
   trailingSlash: 'always',
   output: 'static',
+  redirects: {
+    '/docs/': '/docs/getting_started/',
+    '/docs/llada2.0-flash/': '/docs/model-recipes/',
+    '/docs/model-recipes/llada2.0-flash/': '/docs/model-recipes/',
+  },
   cacheDir: './.astro/cache',
   integrations: [starlight({
     title: 'FluxServe',
     description: 'A serving engine for diffusion language models.',
-    favicon: '/fluxserve-icon.png',
+    favicon: '/new_logo.png',
     customCss: ['./src/styles/site.css', './src/styles/controls.css'],
     credits: false,
     disable404Route: true,
@@ -18,6 +23,11 @@ export default defineConfig({
       PageTitle: './src/components/PageTitle.astro',
       Footer: './src/components/Footer.astro',
     },
-    sidebar: [{ autogenerate: { directory: 'docs' } }],
+    sidebar: [
+      { label: 'Getting Started', slug: 'docs/getting_started' },
+      { label: 'Configuration', slug: 'docs/configuration' },
+      { label: 'Model Recipes', slug: 'docs/model-recipes' },
+      { label: 'Benchmark Guide', slug: 'docs/benchmark-guide' },
+    ],
   })],
 });

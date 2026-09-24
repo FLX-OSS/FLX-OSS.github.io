@@ -117,6 +117,7 @@ export async function importDocs({ sourceDir, outputDir, publicDir, config, loca
     });
   }
   // Validate everything before replacing the generated output.
+  consolidateModelRecipes(rendered);
   for (const asset of assets) await stat(within(sourceDir, asset));
   await rm(outputDir, { recursive: true, force: true });
   await rm(publicDir, { recursive: true, force: true });
@@ -131,6 +132,48 @@ export async function importDocs({ sourceDir, outputDir, publicDir, config, loca
     await cp(within(sourceDir, asset), dest);
   }
   return { pages: rendered.length, assets: assets.size };
+}
+
+export function consolidateModelRecipes(rendered) {
+  const recipes = [
+    ['llada2-mini', 'LLaDA2.0 Mini'],
+    ['llada2-flash', 'LLaDA2.0 Flash'],
+    ['llada2.1', 'LLaDA2.1'],
+  ];
+  const selected = recipes.map(([slug]) => rendered.find(page => page.file === `docs/serving/${slug}.md`));
+  if (selected.some(page => !page)) return;
+  const destination = '/docs/serving/model-recipes/';
+  const links = new Map();
+  const slugger = new GithubSlugger();
+  const sections = selected.map((page, i) => {
+    const [slug, title] = recipes[i];
+    const route = `/docs/serving/${slug}/`;
+    const sectionId = slugger.slug(title);
+    links.set(route, destination + '#' + sectionId);
+    links.set(route + '#_top', destination + '#' + sectionId);
+    const body = page.content.replace(/^---\n[\s\S]*?\n---\n/, '');
+    const tree = processor.parse(body);
+    const oldSlugger = new GithubSlugger();
+    visit(tree, 'heading', node => {
+      const heading = textOf(node);
+      links.set(route + '#' + oldSlugger.slug(heading), destination + '#' + slugger.slug(heading));
+      node.depth = Math.min(6, node.depth + 1);
+    });
+    return '## ' + title + '\n\n' + processor.stringify(tree);
+  });
+  for (const page of selected) rendered.splice(rendered.indexOf(page), 1);
+  rendered.push({
+    file: 'docs/serving/model-recipes.md',
+    content: '---\ntitle: Model Recipes\ndescription: Serving and benchmarking recipes for LLaDA2.0 Mini, LLaDA2.0 Flash, and LLaDA2.1.\neditUrl: false\n---\n\n' + sections.join('\n'),
+  });
+  for (const page of rendered) {
+    const frontmatter = page.content.match(/^---\n[\s\S]*?\n---\n/)[0];
+    const tree = processor.parse(page.content.slice(frontmatter.length));
+    visit(tree, node => {
+      if (['link', 'definition'].includes(node.type) && links.has(node.url)) node.url = links.get(node.url);
+    });
+    page.content = frontmatter + '\n' + processor.stringify(tree);
+  }
 }
 
 export async function fetchMain(sourceDir, repositoryURL) {

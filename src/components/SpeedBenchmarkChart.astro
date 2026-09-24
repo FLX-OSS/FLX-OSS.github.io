@@ -1,0 +1,95 @@
+---
+const results = [
+  { model: 'LLaDA-2.0-mini', fluxServe: 1300, sgLang: 827 },
+  { model: 'LLaDA-2.0-flash', fluxServe: 729, sgLang: 507 },
+  { model: 'LLaDA-2.1-mini', fluxServe: 2451, sgLang: 1299 },
+  { model: 'LLaDA-2.1-flash', fluxServe: 1279, sgLang: 805 },
+];
+
+const baseline = 520;
+const chartHeight = 360;
+const maxValue = 2451;
+const barTop = (value: number) => baseline - value / maxValue * chartHeight;
+---
+
+<figure class="speed-benchmark" aria-describedby="speed-caption">
+  <div class="chart-scroller" tabindex="0" aria-label="Scrollable speed benchmark chart">
+    <svg viewBox="0 0 1040 580" role="img" aria-labelledby="speed-title speed-description">
+      <title id="speed-title">Speed Benchmark</title>
+      <desc id="speed-description">Decode throughput in tokens per second. FluxServe and SGLang respectively: LLaDA-2.0-mini, 1300 and 827; LLaDA-2.0-flash, 729 and 507; LLaDA-2.1-mini, 2451 and 1299; LLaDA-2.1-flash, 1279 and 805.</desc>
+
+      <line class="title-rule" x1="14" x2="14" y1="16" y2="60" />
+      <text class="chart-title" x="38" y="46">Speed Benchmark</text>
+      <text class="chart-unit" x="1024" y="46" text-anchor="end">Decode Throughput (tokens/sec)</text>
+
+      <g class="legend">
+        <rect class="flux-bar" x="32" y="104" width="56" height="26" />
+        <text x="102" y="124">FluxServe</text>
+        <rect class="sg-bar" x="32" y="140" width="56" height="26" />
+        <text x="102" y="160">SGLang</text>
+      </g>
+
+      {results.map((result, index) => {
+        const groupX = 56 + index * 254;
+        const fluxTop = barTop(result.fluxServe);
+        const sgTop = barTop(result.sgLang);
+        return <g class="model-group" style={`--group: ${index}`}>
+          <rect class="flux-bar animated-bar" x={groupX} y={fluxTop} width="72" height={baseline - fluxTop} />
+          <rect class="sg-bar animated-bar" x={groupX + 80} y={sgTop} width="72" height={baseline - sgTop} />
+          <text class="bar-value" x={groupX + 36} y={fluxTop - 9} text-anchor="middle">{result.fluxServe}</text>
+          <text class="bar-value" x={groupX + 116} y={sgTop - 9} text-anchor="middle">{result.sgLang}</text>
+          <text class="model-label" x={groupX + 76} y="553" text-anchor="middle">{result.model}</text>
+        </g>;
+      })}
+    </svg>
+  </div>
+  <figcaption id="speed-caption">Mini models are run with TP=EP=1, and flash models are run with TP=EP=4 on 4 x NVIDIA GH200 GPUs.</figcaption>
+</figure>
+
+<script>
+  const chart = document.querySelector('.speed-benchmark');
+  if (chart && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    chart.setAttribute('data-ready', '');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          chart.setAttribute('data-visible', '');
+          observer.disconnect();
+        }
+      }, { threshold: 0.15 });
+      observer.observe(chart);
+    } else {
+      chart.setAttribute('data-visible', '');
+    }
+  }
+</script>
+
+<style>
+  .speed-benchmark { width: 90%; max-width: 800px; min-width: 0; margin: 0 auto; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fffdf7; }
+  .chart-scroller { overflow-x: auto; overscroll-behavior-inline: contain; }
+  .chart-scroller:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+  svg { display: block; width: 100%; min-width: 700px; height: auto; }
+  svg text { fill: #3b4144; font-family: var(--sl-font-mono); }
+  .title-rule { stroke: #ff7770; stroke-width: 4; }
+  .chart-title { font-size: 27px; letter-spacing: .02em; }
+  .chart-unit { fill: #62696c; font-size: 20px; }
+  .legend text { font-size: 19px; }
+  .flux-bar { fill: #fc9b90; stroke: #dc6c62; stroke-width: 1.5; }
+  .sg-bar { fill: #ffb45d; stroke: #e58c1c; stroke-width: 1.5; }
+  .bar-value { font-size: 18px; }
+  .model-label { font-size: 20px; }
+  figcaption { padding: .65rem 1rem; border-top: 1px solid #e7e2d9; color: #555d60; background: #fffdf7; font-size: .72rem; line-height: 1.5; }
+  [data-ready]:not([data-visible]) .animated-bar { transform: scaleY(0); }
+  [data-ready]:not([data-visible]) .bar-value { opacity: 0; }
+  [data-visible] .animated-bar { transform-box: fill-box; transform-origin: center bottom; animation: rise .8s cubic-bezier(.2,.75,.2,1) calc(.1s + var(--group) * .16s) both; }
+  [data-visible] .bar-value { animation: reveal .35s ease-out calc(.65s + var(--group) * .16s) both; }
+  @keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes reveal { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-visible] .animated-bar, [data-visible] .bar-value { animation: none; }
+  }
+  :global([data-theme='dark']) .speed-benchmark, :global([data-theme='dark']) figcaption { background: #202124; }
+  :global([data-theme='dark']) svg text { fill: #e7e4df; }
+  :global([data-theme='dark']) .chart-unit, :global([data-theme='dark']) figcaption { color: #c9c5be; fill: #c9c5be; }
+  :global([data-theme='dark']) figcaption { border-top-color: #454545; }
+</style>

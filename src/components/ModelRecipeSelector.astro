@@ -1,0 +1,281 @@
+---
+import { defaults, groups, optionEnabled, optionLabel, optionVisible, recipeView } from '../lib/model-recipes';
+
+const initialView = recipeView(defaults);
+---
+
+<model-recipe-selector>
+  <!-- Command and copy action -->
+  <div class="command-box">
+    <div class="command-header">
+      <button type="button" data-copy aria-label="Copy command" title="Copy command">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <rect x="8" y="8" width="12" height="13" rx="2" />
+          <path d="M16 8V3H3v13h5" />
+        </svg>
+      </button>
+    </div>
+    <p class="hardware-verification" data-verification hidden aria-live="polite">
+      <span class="verified-dot" aria-hidden="true"></span>
+      <span data-verification-label></span>
+    </p>
+    <pre><code data-command>{initialView.command}</code></pre>
+  </div>
+
+  <!-- Section order and options are configured in src/lib/model-recipes.ts. -->
+  <div class="recipe-controls">
+    {groups.map(group => (
+      <fieldset data-setting={group.key}>
+        <legend>{group.label}</legend>
+        <div class="option-buttons">
+          {group.options.map(option => (
+            <button
+              type="button"
+              value={option.value}
+              aria-pressed={defaults[group.key] === option.value}
+              aria-label={option.verified ? option.label + ', verified hardware' : undefined}
+              hidden={!optionVisible(defaults, group.key, option.value)}
+              disabled={!optionEnabled(defaults, group.key, option.value)}
+            >
+              {option.verified && <span class="verified-dot" aria-hidden="true"></span>}
+              <span data-option-label>{optionLabel(defaults, group.key, option)}</span>
+            </button>
+          ))}
+        </div>
+        {group.key === 'variant' && (
+          <div class="variant-detail" data-variant-detail>
+            <p data-gemma-description hidden>
+              Full BF16 — single 80 GB NVIDIA GPU (H100/H200). Requires
+              {' '}<code>--max-num-seqs 4</code> to avoid OOM from diffusion state buffers.
+            </p>
+            <a class="huggingface-link"
+              href={initialView.variantLink.href}
+              target="_blank" rel="noopener">
+              <img src="/huggingface-icon.webp" width="14" height="14" alt="" />
+              <span data-huggingface-label>{initialView.variantLink.label}</span>
+            </a>
+          </div>
+        )}
+      </fieldset>
+    ))}
+  </div>
+
+  <p data-note aria-live="polite">{initialView.note}</p>
+  <p role="status" data-status></p>
+</model-recipe-selector>
+
+<script>
+  import {
+    defaults, groups, optionEnabled, optionLabel, optionVisible, recipeView, selectOption,
+    type Setting,
+  } from '../lib/model-recipes';
+
+  class ModelRecipeSelector extends HTMLElement {
+    private selected = { ...defaults };
+    private initialized = false;
+
+    connectedCallback() {
+      if (this.initialized) return;
+      this.initialized = true;
+
+      this.querySelectorAll<HTMLFieldSetElement>('[data-setting]').forEach(group => {
+        const setting = group.dataset.setting as Setting;
+        group.querySelectorAll<HTMLButtonElement>('button').forEach(button => {
+          button.addEventListener('click', () => {
+            this.selected = selectOption(this.selected, setting, button.value);
+            this.render();
+          });
+        });
+      });
+      this.querySelector('[data-copy]')!.addEventListener('click', () => this.copyCommand());
+      this.render();
+    }
+
+    /** Update every section from the same selection state. */
+    private render() {
+      for (const group of groups) {
+        const fieldset = this.querySelector('[data-setting="' + group.key + '"]')!;
+        for (const option of group.options) {
+          const button = fieldset.querySelector<HTMLButtonElement>('[value="' + option.value + '"]')!;
+          button.hidden = !optionVisible(this.selected, group.key, option.value);
+          button.disabled = !optionEnabled(this.selected, group.key, option.value);
+          button.setAttribute('aria-pressed', String(this.selected[group.key] === option.value));
+          button.querySelector('[data-option-label]')!.textContent =
+            optionLabel(this.selected, group.key, option);
+        }
+      }
+
+      const view = recipeView(this.selected);
+      this.querySelector('[data-command]')!.textContent = view.command;
+      this.querySelector('[data-note]')!.textContent = view.note;
+      this.querySelector('[data-status]')!.textContent = '';
+      this.querySelector<HTMLButtonElement>('[data-copy]')!.disabled = view.unsupported;
+      this.querySelector<HTMLElement>('[data-gemma-description]')!.hidden = !view.gemmaBF16;
+      const modelLink = this.querySelector<HTMLAnchorElement>('.huggingface-link')!;
+      modelLink.href = view.variantLink.href;
+      modelLink.querySelector('[data-huggingface-label]')!.textContent = view.variantLink.label;
+      this.querySelector<HTMLElement>('[data-verification]')!.hidden = !view.verified;
+      this.querySelector('[data-verification-label]')!.textContent = view.verificationLabel;
+    }
+
+    private async copyCommand() {
+      const status = this.querySelector('[data-status]')!;
+      try {
+        await navigator.clipboard.writeText(recipeView(this.selected).command);
+        status.textContent = 'Command copied.';
+      } catch {
+        status.textContent = 'Could not copy automatically. Select and copy the command above.';
+      }
+    }
+  }
+
+  if (!customElements.get('model-recipe-selector')) {
+    customElements.define('model-recipe-selector', ModelRecipeSelector);
+  }
+</script>
+
+<style>
+  model-recipe-selector {
+    display: block;
+    margin-top: 1.5rem;
+  }
+  .command-header {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+  }
+  [data-copy] {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    padding: 0;
+  }
+  .command-box {
+    position: relative;
+    margin-top: 1rem;
+    padding: .85rem 3.5rem .85rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  pre {
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    font-size: .85rem;
+    line-height: 1.7;
+  }
+  code {
+    font-family: var(--sl-font-mono);
+  }
+  .recipe-controls {
+    display: grid;
+    gap: 0;
+    margin-top: .75rem;
+  }
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: .5rem 0 .65rem;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  legend {
+    padding: 0;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .option-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  button {
+    padding: .45rem .85rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--sl-color-white);
+    font: 500 .8rem var(--sl-font);
+    cursor: pointer;
+    min-height: 36px;
+  }
+  button[aria-pressed='true'] {
+    border-color: var(--brand);
+    background: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+    box-shadow: inset 0 0 0 1px var(--brand);
+  }
+  button:hover:not(:disabled) {
+    border-color: var(--brand);
+  }
+  button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+  p {
+    font-size: .8rem;
+    color: var(--muted);
+    margin-block: .75rem;
+  }
+  .option-buttons button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+  }
+  .option-buttons button[hidden] {
+    display: none;
+  }
+  .variant-detail {
+    max-width: 42rem;
+    margin: .8rem 0 0;
+    font-size: .72rem;
+    line-height: 1.5;
+  }
+  .huggingface-link {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    width: fit-content;
+    margin-top: .45rem;
+    color: var(--muted);
+    font-weight: 400;
+    text-decoration: none;
+  }
+  .huggingface-link:hover {
+    color: var(--brand);
+  }
+  .huggingface-link img {
+    width: 12px;
+    height: 12px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .verified-dot {
+    display: inline-block;
+    width: .35rem;
+    height: .35rem;
+    border-radius: 50%;
+    background: #15803d;
+    flex-shrink: 0;
+  }
+  .hardware-verification {
+    margin: 0 0 .75rem;
+    color: #15803d;
+    font-weight: 600;
+  }
+  .hardware-verification:not([hidden]) {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  :global([data-theme='dark']) .hardware-verification {
+    color: #4ade80;
+  }
+  :global([data-theme='dark']) .verified-dot {
+    background: #4ade80;
+  }
+</style>

@@ -19,11 +19,14 @@ for (const file of files.filter(file => file.endsWith('.html'))) {
 const failures = [];
 for (const [file, $] of html) {
   const pathname = '/' + path.relative(root, file).replace(/index\.html$/, '');
+  const isRedirect = $('meta[http-equiv="refresh"]').length > 0;
+  if (!isRedirect) {
   if ($('h1').length !== 1) failures.push(pathname + ': expected one h1');
   if (!$('title').text() || !$('meta[name="description"]').attr('content'))
     failures.push(pathname + ': missing title or description');
   if (!$('link[rel="canonical"]').attr('href')?.startsWith('https://flx-oss.github.io/'))
     failures.push(pathname + ': missing canonical URL');
+  }
   for (const element of $('a[href],img[src],script[src],link[rel="stylesheet"][href]').toArray()) {
     const url = $(element).attr('href') ?? $(element).attr('src');
     if (!url || /^(https?:|mailto:|tel:|data:|\/\/)/i.test(url)) continue;
