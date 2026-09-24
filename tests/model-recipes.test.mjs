@@ -61,9 +61,9 @@ test('every available model variant has a Hugging Face link', () => {
 });
 
 test('unsupported combinations disable copying and verification', () => {
-  for (const hardware of ['H100', 'GH200', 'B200']) {
+  for (const hardware of ['H100', 'H200', 'GH200', 'B200']) {
     const selection = { ...defaults, hardware };
-    assert.equal(recipeView(selection).verified, hardware !== 'H100');
+    assert.equal(recipeView(selection).verified, true);
     for (const change of [
       { variant: 'FP8' },
       { variant: 'NVFP4' },

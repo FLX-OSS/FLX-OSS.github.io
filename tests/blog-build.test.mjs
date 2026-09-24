@@ -13,6 +13,7 @@ test('production fixtures exclude drafts from routes, blog index, sitemap and se
     await cp(item,path.join(dir,item),{recursive:true});
   await symlink(path.resolve('node_modules'),path.join(dir,'node_modules'),'dir');
   const blog=path.join(dir,'src/content/blog');
+  await rm(blog,{recursive:true,force:true});
   await mkdir(blog,{recursive:true});
   const post=(title,draft)=>'---\ntitle: '+title+'\ndescription: Fixture article\nauthor: Test author\ndate: 2026-01-01\ndraft: '+draft+'\n---\n\n## Example heading\n\n'+title+' searchable body.\n';
   await writeFile(path.join(blog,'published-fixture.md'),post('PublishedCanary',false));
