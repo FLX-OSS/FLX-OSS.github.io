@@ -1,0 +1,8 @@
+---
+import DefaultPageSidebar from '@astrojs/starlight/components/PageSidebar.astro';
+
+const toc = Astro.locals.starlightRoute.toc;
+if (toc) toc.items = toc.items.flatMap((item) => item.slug === '_top' ? item.children : [item]);
+---
+
+<DefaultPageSidebar />

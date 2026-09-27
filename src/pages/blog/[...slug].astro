@@ -2,6 +2,7 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BenchmarkChart from '../../components/BenchmarkChart.astro';
+import GenerationScalingChart from '../../components/GenerationScalingChart.astro';
 import BlockDiffusionAnimation from '../../components/BlockDiffusionAnimation.astro';
 import { publishedPosts } from '../../lib/blog.mjs';
 export async function getStaticPaths() {
@@ -16,6 +17,7 @@ const { Content, headings } = await render(post);
   <Content />
   {post.id === 'introducing-fluxserve' && <div class="post-diffusion" data-block-diffusion-chart hidden><BlockDiffusionAnimation /></div>}
   {post.id === 'introducing-fluxserve' && <div class="post-benchmark" data-benchmark-chart hidden><BenchmarkChart /></div>}
+  {post.id === 'introducing-fluxserve' && <div class="post-scaling" data-scaling-chart hidden><GenerationScalingChart /></div>}
   {post.id === 'introducing-fluxserve' && <script is:inline>
     (() => {
       const diffusionSlot = document.querySelector('[data-block-diffusion-slot]');
@@ -30,6 +32,12 @@ const { Content, headings } = await render(post);
         chart.hidden = false;
         slot.replaceWith(chart);
       }
+      const scalingSlot = document.querySelector('[data-scaling-slot]');
+      const scalingChart = document.querySelector('[data-scaling-chart]');
+      if (scalingSlot && scalingChart) {
+        scalingChart.hidden = false;
+        scalingSlot.replaceWith(scalingChart);
+      }
     })();
   </script>}
   <p><a href="/blog/">← All posts</a></p>
@@ -38,4 +46,5 @@ const { Content, headings } = await render(post);
 <style>
   .post-diffusion { margin: 1.25rem 0 2rem; }
   .post-benchmark { margin: 1.25rem 0 2.5rem; }
+  .post-scaling { margin: 1.25rem 0 2.5rem; }
 </style>

@@ -1,9 +1,9 @@
 ---
 const results = [
-  { model: 'LLaDA-2.0-mini', fluxServe: 1300, sgLang: 827 },
-  { model: 'LLaDA-2.0-flash', fluxServe: 729, sgLang: 507 },
-  { model: 'LLaDA-2.1-mini', fluxServe: 2451, sgLang: 1299 },
-  { model: 'LLaDA-2.1-flash', fluxServe: 1279, sgLang: 805 },
+  { model: 'LLaDA2.0-mini', fluxServe: 1300, sgLang: 827 },
+  { model: 'LLaDA2.0-flash', fluxServe: 729, sgLang: 507 },
+  { model: 'LLaDA2.1-mini', fluxServe: 2451, sgLang: 1299 },
+  { model: 'LLaDA2.1-flash', fluxServe: 1279, sgLang: 805 },
 ];
 
 const baseline = 520;
@@ -43,7 +43,7 @@ const barTop = (value: number) => baseline - value / maxValue * chartHeight;
       })}
     </svg>
   </div>
-  <figcaption id="speed-caption">Mini models are run with TP=EP=1, and flash models are run with TP=EP=4 on 4 x NVIDIA GH200 GPUs.</figcaption>
+  <figcaption id="speed-caption">Mini models are run with TP=EP=1, and flash models are run with TP=EP=4 on NVIDIA GH200 GPUs.</figcaption>
 </figure>
 
 <script>
