@@ -82,5 +82,5 @@ Our system design was inspired by, and incorporates reused code from, the follow
 ### Contributors
 
 - Project Lead & Creator: [Youpeng Zhao](https://kennethzhao24.github.io/)
-- Model Runtime: [Meiling Wang](https://meiling0131.github.io/), [Depng Zhu](https://github.com/zhudp3)
+- Model Runtime: [Meiling Wang](https://meiling0131.github.io/), [Depeng Zhu](https://github.com/zhudp3)
 - Benchmark & Documentation: [Zhiben Chen](https://www.linkedin.com/in/zhiben-chen/), [Ziyan Wang](https://www.linkedin.com/in/ziyan-wang-00a163228/) 
