@@ -51,8 +51,8 @@ For LLaDA2.1-flash, at around 100 user tokens/s, FluxServe delivers over 1000 to
 
 ### Roadmaps
 
-- Model Support: [Nemotron-Labs-Diffusion](https://github.com/FLX-OSS/FluxServe/pull/14), [Diffusion-Gemma](https://github.com/FLX-OSS/FluxServe/issues/15)
-- [NVIDIA Blackwell GPU Support](https://github.com/FLX-OSS/FluxServe/issues/16)
+- Model Support: [Nemotron-Labs-Diffusion](https://github.com/FLX-OSS/FluxServe/pull/14), [Diffusion-Gemma](https://github.com/FLX-OSS/FluxServe/issues/16)
+- [NVIDIA Blackwell GPU Support](https://github.com/FLX-OSS/FluxServe/issues/15)
 - Advanced Quantization: FP8 & NVFP4
 
 
