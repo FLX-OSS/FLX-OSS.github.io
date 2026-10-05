@@ -7,8 +7,9 @@ export default defineConfig({
   output: 'static',
   redirects: {
     '/docs/': '/docs/getting_started/',
-    '/docs/llada2.0-flash/': '/docs/model-recipes/',
-    '/docs/model-recipes/llada2.0-flash/': '/docs/model-recipes/',
+    '/docs/model-recipes/': '/docs/model-recipes/llada/',
+    '/docs/llada2.0-flash/': '/docs/model-recipes/llada/',
+    '/docs/model-recipes/llada2.0-flash/': '/docs/model-recipes/llada/',
   },
   cacheDir: './.astro/cache',
   integrations: [starlight({
@@ -27,7 +28,14 @@ export default defineConfig({
     sidebar: [
       { label: 'Getting Started', slug: 'docs/getting_started' },
       { label: 'Configuration', slug: 'docs/configuration' },
-      { label: 'Model Recipes', slug: 'docs/model-recipes' },
+      {
+        label: 'Model Recipes',
+        items: [
+          { label: 'LLaDA', slug: 'docs/model-recipes/llada' },
+          { label: 'Diffusion-Gemma', slug: 'docs/model-recipes/diffusion-gemma' },
+          { label: 'Nemotron-Labs-Diffusion', slug: 'docs/model-recipes/nemotron-labs-diffusion' },
+        ],
+      },
       { label: 'Benchmark Guide', slug: 'docs/benchmark-guide' },
     ],
   })],

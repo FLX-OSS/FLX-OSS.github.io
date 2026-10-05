@@ -1,10 +1,26 @@
 ---
-import { defaults, groups, optionEnabled, optionLabel, optionVisible, recipeView } from '../lib/model-recipes';
+import { defaults, groups, models, optionEnabled, optionLabel, optionVisible, recipeView, selectOption } from '../lib/model-recipes';
 
-const initialView = recipeView(defaults);
+type Family = 'llada' | 'diffusion-gemma' | 'nemotron-labs-diffusion';
+const { family } = Astro.props as { family: Family };
+const startingModel = family === 'llada' ? 'LLaDA2.0-mini'
+  : family === 'diffusion-gemma' ? 'diffusion-gemma' : 'nemotron-14b';
+const initialSelection = selectOption(defaults, 'model', startingModel);
+if (family === 'nemotron-labs-diffusion') {
+  initialSelection.hardware = 'GH200';
+  initialSelection.backend = 'fa4';
+}
+const visibleGroups = groups
+  .filter(group => !(group.key === 'model' && family === 'diffusion-gemma'))
+  .filter(group => group.key !== 'decoding' || family === 'nemotron-labs-diffusion')
+  .filter(group => group.key !== 'parallel' || family !== 'nemotron-labs-diffusion')
+  .map(group => group.key === 'model'
+    ? { ...group, options: group.options.filter(option => models[option.value].family === family) }
+    : group);
+const initialView = recipeView(initialSelection);
 ---
 
-<model-recipe-selector>
+<model-recipe-selector data-model={startingModel} data-hardware={initialSelection.hardware} data-backend={initialSelection.backend}>
   <!-- Command and copy action -->
   <div class="command-box">
     <div class="command-header">
@@ -25,7 +41,7 @@ const initialView = recipeView(defaults);
 
   <!-- Section order and options are configured in src/lib/model-recipes.ts. -->
   <div class="recipe-controls">
-    {groups.map(group => (
+    {visibleGroups.map(group => (
       <fieldset data-setting={group.key}>
         <legend>{group.label}</legend>
         <div class="option-buttons">
@@ -33,13 +49,13 @@ const initialView = recipeView(defaults);
             <button
               type="button"
               value={option.value}
-              aria-pressed={defaults[group.key] === option.value}
-              aria-label={option.verified ? option.label + ', verified hardware' : undefined}
-              hidden={!optionVisible(defaults, group.key, option.value)}
-              disabled={!optionEnabled(defaults, group.key, option.value)}
+              aria-pressed={initialSelection[group.key] === option.value}
+              aria-label={option.verified && (family !== 'nemotron-labs-diffusion' || option.value === 'GH200') ? option.label + ', verified hardware' : undefined}
+              hidden={!optionVisible(initialSelection, group.key, option.value)}
+              disabled={!optionEnabled(initialSelection, group.key, option.value)}
             >
-              {option.verified && <span class="verified-dot" aria-hidden="true"></span>}
-              <span data-option-label>{optionLabel(defaults, group.key, option)}</span>
+              {option.verified && (family !== 'nemotron-labs-diffusion' || option.value === 'GH200') && <span class="verified-dot" aria-hidden="true"></span>}
+              <span data-option-label>{optionLabel(initialSelection, group.key, option)}</span>
             </button>
           ))}
         </div>
@@ -78,6 +94,9 @@ const initialView = recipeView(defaults);
     connectedCallback() {
       if (this.initialized) return;
       this.initialized = true;
+      this.selected = selectOption(defaults, 'model', this.dataset.model!);
+      this.selected.hardware = this.dataset.hardware!;
+      this.selected.backend = this.dataset.backend!;
 
       this.querySelectorAll<HTMLFieldSetElement>('[data-setting]').forEach(group => {
         const setting = group.dataset.setting as Setting;
@@ -94,10 +113,10 @@ const initialView = recipeView(defaults);
 
     /** Update every section from the same selection state. */
     private render() {
-      for (const group of groups) {
-        const fieldset = this.querySelector('[data-setting="' + group.key + '"]')!;
-        for (const option of group.options) {
-          const button = fieldset.querySelector<HTMLButtonElement>('[value="' + option.value + '"]')!;
+      for (const fieldset of this.querySelectorAll<HTMLFieldSetElement>('[data-setting]')) {
+        const group = groups.find(group => group.key === fieldset.dataset.setting)!;
+        for (const button of fieldset.querySelectorAll<HTMLButtonElement>('button')) {
+          const option = group.options.find(option => option.value === button.value)!;
           button.hidden = !optionVisible(this.selected, group.key, option.value);
           button.disabled = !optionEnabled(this.selected, group.key, option.value);
           button.setAttribute('aria-pressed', String(this.selected[group.key] === option.value));

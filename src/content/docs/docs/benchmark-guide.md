@@ -21,7 +21,7 @@ Save these lines as `data/benchmark.jsonl`. Each `metadata.task_id` must be uniq
 ## Online benchmark
 
 The online benchmark measures the full HTTP serving path, including scheduling, execution, and transport overhead.
-Use a command from [Model Recipes](/docs/model-recipes/).
+Use a command from the [LLaDA model recipe](/docs/model-recipes/llada/).
 
 ```bash
 fluxserve launch \

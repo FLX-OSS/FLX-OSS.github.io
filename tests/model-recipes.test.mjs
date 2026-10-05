@@ -12,7 +12,7 @@ const { defaults, groups, models, selectOption, optionVisible, optionEnabled, op
   await import('data:text/javascript;base64,' + Buffer.from(outputText).toString('base64'));
 
 test('section order and default command are preserved', () => {
-  assert.deepEqual(groups.map(group => group.key), ['model', 'hardware', 'variant', 'backend', 'parallel']);
+  assert.deepEqual(groups.map(group => group.key), ['model', 'hardware', 'variant', 'backend', 'parallel', 'decoding']);
   const lines = recipeView(defaults).command.split('\n');
   assert.equal(lines.length, 6);
   assert.equal(lines[0], 'fluxserve launch ' + String.fromCharCode(92));
@@ -26,11 +26,10 @@ test('section order and default command are preserved', () => {
 test('model changes enforce available variants and parallelism', () => {
   for (const model of Object.keys(models)) {
     const selection = selectOption({ ...defaults, variant: 'FP8' }, 'model', model);
-    const llada = model.startsWith('LLaDA2.');
     const flash = model.endsWith('-flash');
     assert.equal(selection.variant, 'BF16');
     assert.equal(selection.parallel, flash ? '4' : '1');
-    assert.equal(optionVisible(selection, 'variant', 'NVFP4'), !llada);
+    assert.equal(optionVisible(selection, 'variant', 'NVFP4'), model === 'diffusion-gemma');
     assert.equal(optionVisible(selection, 'parallel', '1'), !flash);
   }
   assert.equal(defaults.parallel, '1');
@@ -74,6 +73,16 @@ test('unsupported combinations disable copying and verification', () => {
       assert.equal(view.verified, false);
       assert.ok(view.command.startsWith('# '));
     }
+  }
+});
+
+test('RTX Pro 6000 is available for every model without a verification claim', () => {
+  const hardware = groups.find(group => group.key === 'hardware').options;
+  assert.ok(hardware.some(option => option.value === 'RTX Pro 6000'));
+  for (const model of Object.keys(models)) {
+    const selection = { ...selectOption(defaults, 'model', model), hardware: 'RTX Pro 6000' };
+    assert.equal(optionVisible(selection, 'hardware', 'RTX Pro 6000'), true);
+    assert.equal(recipeView(selection).verified, false);
   }
 });
 
@@ -139,4 +148,27 @@ test('unsupported choices are disabled and switching to Gemma selects FlashInfer
   assert.equal(optionEnabled(gemma, 'variant', 'NVFP4'), false);
   assert.deepEqual(selectOption(gemma, 'backend', 'fa4'), gemma);
   assert.deepEqual(selectOption(gemma, 'variant', 'FP8'), gemma);
+});
+
+test('Nemotron sizes and decoding modes use the documented serving options', () => {
+  for (const size of ['3b', '8b', '14b']) {
+    const selection = selectOption(defaults, 'model', `nemotron-${size}`);
+    const threshold = recipeView(selection).command;
+    assert.ok(threshold.includes(`--model nvidia/Nemotron-Labs-Diffusion-${size.toUpperCase()}`));
+    assert.ok(threshold.includes('--parallel-decoding threshold'));
+    assert.ok(threshold.includes('--threshold 0.9'));
+    assert.ok(threshold.includes('--trust-remote-code'));
+    assert.equal(optionVisible(selection, 'parallel', '4'), false);
+    assert.equal(recipeView({ ...selection, hardware: 'GH200' }).verified, true);
+    assert.equal(recipeView(selection).verified, false);
+
+    const selfSpeculation = selectOption(selection, 'decoding', 'self_speculation');
+    const command = recipeView(selfSpeculation).command;
+    assert.equal(selfSpeculation.backend, 'fa4');
+    assert.ok(command.includes('--parallel-decoding self_speculation'));
+    assert.ok(command.includes('--max-thinking-tokens 1024'));
+    assert.ok(command.includes('--max-scheduled-tokens 2048'));
+    assert.equal(optionEnabled(selfSpeculation, 'backend', 'flashinfer'), false);
+    assert.equal(recipeView({ ...selfSpeculation, backend: 'flashinfer' }).unsupported, true);
+  }
 });

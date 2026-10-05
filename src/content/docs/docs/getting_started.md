@@ -8,14 +8,24 @@ editUrl: "https://github.com/FLX-OSS/FLX-OSS.github.io/edit/main/src/content/doc
 ## Prerequisites
 
 - A Linux host with NVIDIA GPUs of compute capability 9.0 or newer.
-- An NVIDIA driver compatible with CUDA 12.9+, Docker, and NVIDIA Container Toolkit configured for GPU access.
+- An NVIDIA driver compatible with CUDA 13.0, Docker, and NVIDIA Container Toolkit configured for GPU access.
 
 ---
 
-## Build the docker
+## Choose a Docker image
+
+Choose the image for your GPU's compute capability. See the [published Docker tags](https://hub.docker.com/r/flxoss/fluxserve/tags) for available images.
+
+| CUDA Compatibility | OS/ARCH | Docker image |
+| --- | --- | --- |
+| SM90 | linux/amd64 | `flxoss/fluxserve:v0.1-cu130-fa4` |
+| SM120 | linux/amd64 | `flxoss/fluxserve:v0.1-cu130-sm120` |
+
+Set `FLUXSERVE_IMAGE` to the image from your row, then pull it. This example uses SM90:
 
 ```bash
-docker pull flxoss/fluxserve:v0.1-cu130-fa4
+export FLUXSERVE_IMAGE=flxoss/fluxserve:v0.1-cu130-fa4
+docker pull "$FLUXSERVE_IMAGE"
 ```
 
 ---
@@ -31,7 +41,7 @@ docker run -itd \
   --pid=host \
   --privileged \
   --name flux_workspace \
-  fluxserve:v0.1-cu130-fa4 \
+  "$FLUXSERVE_IMAGE" \
   /bin/bash
 
 docker exec -it flux_workspace /bin/bash
@@ -73,7 +83,7 @@ fluxserve launch \
   --dp-size 1 \
   --ep-size 1
 ```
-For model-specific examples, follow [Model Recipes](/docs/model-recipes/).
+For model-specific examples, follow the [LLaDA model recipe](/docs/model-recipes/llada/).
 
 ---
 

@@ -1,6 +1,7 @@
 /** Edit model metadata and available choices here. */
 export interface ModelRecipe {
   label: string;
+  family: 'llada' | 'diffusion-gemma' | 'nemotron-labs-diffusion';
   checkpoint: string;
   variants: Record<string, string>;
   variantLinks: Record<string, VariantLink>;
@@ -12,14 +13,10 @@ interface VariantLink {
   href: string;
 }
 
-const placeholderLink = (model: string, variant: string): VariantLink => ({
-  label: `placeholder/${model}-${variant.toLowerCase()}`,
-  href: `https://huggingface.co/placeholder/${model}-${variant.toLowerCase()}`,
-});
-
 export const models: Record<string, ModelRecipe> = {
   'LLaDA2.0-mini': {
     label: 'LLaDA2.0-Mini',
+    family: 'llada',
     checkpoint: 'inclusionAI/LLaDA2.0-mini',
     variants: { BF16: 'BF16 33GB'},
     variantLinks: { BF16: 
@@ -32,6 +29,7 @@ export const models: Record<string, ModelRecipe> = {
   },
   'LLaDA2.0-flash': {
     label: 'LLaDA2.0-Flash',
+    family: 'llada',
     checkpoint: 'inclusionAI/LLaDA2.0-flash',
     variants: { BF16: 'BF16 206GB'},
     variantLinks: { BF16: 
@@ -44,6 +42,7 @@ export const models: Record<string, ModelRecipe> = {
   },
   'LLaDA2.1-mini': {
     label: 'LLaDA2.1-Mini',
+    family: 'llada',
     checkpoint: 'inclusionAI/LLaDA2.1-mini',
     variants: { BF16: 'BF16 33 GB'},
     variantLinks: { BF16: 
@@ -56,6 +55,7 @@ export const models: Record<string, ModelRecipe> = {
   },
   'LLaDA2.1-flash': {
     label: 'LLaDA2.1-Flash',
+    family: 'llada',
     checkpoint: 'inclusionAI/LLaDA2.1-flash',
     variants: { BF16: 'BF16 206GB'},
     variantLinks: { BF16: 
@@ -68,6 +68,7 @@ export const models: Record<string, ModelRecipe> = {
   },
   'diffusion-gemma': {
     label: 'Diffusion-Gemma',
+    family: 'diffusion-gemma',
     checkpoint: 'google/diffusiongemma-26B-A4B-it',
     variants: { BF16: 'BF16 52GB', FP8: 'FP8 27GB', NVFP4: 'NVFP4 19GB' },
     variantLinks: {
@@ -86,6 +87,17 @@ export const models: Record<string, ModelRecipe> = {
     },
     parallelism: ['1', '4'],
   },
+  ...Object.fromEntries(['3B', '8B', '14B'].map(size => {
+    const checkpoint = `nvidia/Nemotron-Labs-Diffusion-${size}`;
+    return [`nemotron-${size.toLowerCase()}`, {
+      label: `Nemotron-Labs-Diffusion-${size}`,
+      family: 'nemotron-labs-diffusion' as const,
+      checkpoint,
+      variants: { BF16: 'BF16' },
+      variantLinks: { BF16: { label: checkpoint, href: `https://huggingface.co/${checkpoint}` } },
+      parallelism: ['1'],
+    }];
+  })),
 };
 
 export interface Selection {
@@ -94,6 +106,7 @@ export interface Selection {
   variant: string;
   backend: string;
   parallel: string;
+  decoding: string;
 }
 export type Setting = keyof Selection;
 interface Option {
@@ -122,6 +135,7 @@ export const groups: Group[] = [
       { value: 'H200', label: 'H200', verified: true },
       { value: 'GH200', label: 'GH200', verified: true },
       { value: 'B200', label: 'B200', verified: true },
+      { value: 'RTX Pro 6000', label: 'RTX Pro 6000' },
     ],
   },
   {
@@ -142,6 +156,14 @@ export const groups: Group[] = [
     label: 'Parallelism Settings',
     options: ['1', '4'].map(value => ({ value, label: `TP=EP=${value}` })),
   },
+  {
+    key: 'decoding',
+    label: 'Decoding Method',
+    options: [
+      { value: 'threshold', label: 'Threshold' },
+      { value: 'self_speculation', label: 'Self speculation' },
+    ],
+  },
 ];
 
 export const defaults: Selection = {
@@ -150,6 +172,7 @@ export const defaults: Selection = {
   variant: 'BF16',
   backend: 'flashinfer',
   parallel: '1',
+  decoding: 'threshold',
 };
 
 export function selectOption(current: Selection, key: Setting, value: string): Selection {
@@ -159,6 +182,8 @@ export function selectOption(current: Selection, key: Setting, value: string): S
   if (!(next.variant in model.variants) || !optionEnabled(next, 'variant', next.variant)) next.variant = 'BF16';
   if (!optionEnabled(next, 'backend', next.backend)) next.backend = 'flashinfer';
   if (key === 'model' || !model.parallelism.includes(next.parallel)) next.parallel = model.parallelism[0];
+  if (model.family === 'nemotron-labs-diffusion' && next.decoding === 'self_speculation') next.backend = 'fa4';
+  if (model.family !== 'nemotron-labs-diffusion') next.decoding = 'threshold';
   return next;
 }
 
@@ -171,7 +196,8 @@ export function optionVisible(selection: Selection, key: Setting, value: string)
 
 export function optionEnabled(selection: Selection, key: Setting, value: string): boolean {
   if (key === 'variant') return value === 'BF16';
-  if (key === 'backend' && value === 'fa4') return selection.model.startsWith('LLaDA2.');
+  if (key === 'backend' && value === 'fa4') return selection.model !== 'diffusion-gemma';
+  if (key === 'backend' && value === 'flashinfer' && selection.decoding === 'self_speculation') return false;
   return true;
 }
 
@@ -181,6 +207,21 @@ export function optionLabel(selection: Selection, key: Setting, option: Option):
 
 /** Keep command arguments explicit: no replacements against rendered HTML. */
 export function buildCommand(selection: Selection): string {
+  if (models[selection.model].family === 'nemotron-labs-diffusion') {
+    const selfSpeculation = selection.decoding === 'self_speculation';
+    const args = [
+      `--model ${models[selection.model].checkpoint}`,
+      '--tp-size 1',
+      ...(selfSpeculation ? ['--max-scheduled-tokens 2048'] : []),
+      '--block-length 32',
+      '--page-size 32',
+      `--parallel-decoding ${selection.decoding}`,
+      ...(selfSpeculation ? ['--max-thinking-tokens 1024'] : ['--threshold 0.9']),
+      `--attention-backend ${selection.backend}`,
+      '--trust-remote-code',
+    ];
+    return ['fluxserve launch', ...args.map(arg => '  ' + arg)].join(' \\\n');
+  }
   const isLlada21 = selection.model.startsWith('LLaDA2.1-');
   const isGemma = selection.model === 'diffusion-gemma';
   const args: [string, string][] = [
@@ -213,18 +254,23 @@ export function recipeView(selection: Selection) {
   if (selection.variant !== 'BF16') {
     reasons.push(`${selection.variant} quantized checkpoints are not supported by the current FluxServe CLI.`);
   }
-  if (selection.backend === 'fa4' && !selection.model.startsWith('LLaDA2.')) {
+  if (selection.backend === 'fa4' && selection.model === 'diffusion-gemma')
     reasons.push('FA4 serving is not available for this model recipe.');
-  }
+  if (selection.decoding === 'self_speculation' && selection.backend !== 'fa4')
+    reasons.push('Nemotron self speculation requires FA4.');
   const unsupported = reasons.length > 0;
   const gemmaBF16 = selection.model === 'diffusion-gemma' && selection.variant === 'BF16';
   const variantLink = models[selection.model].variantLinks[selection.variant];
   const hardwareOptions = groups.find(group => group.key === 'hardware')!.options;
-  const verified = !unsupported && hardwareOptions.some(
+  const verified = !unsupported && (models[selection.model].family === 'nemotron-labs-diffusion'
+    ? selection.hardware === 'GH200'
+    : hardwareOptions.some(
     option => option.value === selection.hardware && option.verified,
-  );
+  ));
   const note = unsupported
-    ? 'Select a LLaDA model with BF16 and FlashInfer or FA4 for a runnable command.'
+    ? 'Choose a supported BF16 variant and attention backend for a runnable command.'
+    : models[selection.model].family === 'nemotron-labs-diffusion'
+      ? 'FluxServe has measured these recipes on a single GH200. Other hardware targets may require tuning.'
     : selection.model === 'diffusion-gemma'
       ? 'This recipe uses --scheduler-policy default as requested; it requires a FluxServe version accepting that policy (the local CLI currently lists paged and dynamic).'
       : 'Hardware selects the target label; FluxServe detects the installed GPU. Adjust the checkpoint in the command as needed.';
